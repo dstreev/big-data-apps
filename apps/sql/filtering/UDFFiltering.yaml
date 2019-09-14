@@ -1,0 +1,72 @@
+title: "Slowly Changing Fact Source"
+description: "Slow"
+output:
+  format: "JSON"
+order:
+  - id
+  - ip_address
+  - source
+  - field_1
+  - field_2
+  - amount_1
+  - amount_2
+keyFields:
+  - id
+fields:
+  -
+    type: "string"
+    name: "id"
+    hash: true
+    messageDigest: "SHA-1"
+    characters: "0123456789"
+    range:
+      min: 7
+      max: 7
+  -
+    type: "ipv4"
+    name: "ip_address"
+    range:
+      min: "22.0.0.0"
+      max: "210.0.0.0"
+  -
+    type: "string"
+    name: "source"
+    pool:
+      items:
+        - "AAAA"
+        - "BBBB"
+        - "CCCC"
+  -
+    type: "string"
+    name: "field_1"
+    range:
+      min: 3
+      max: 10
+  -
+    type: "string"
+    name: "field_2"
+    range:
+      min: 20
+      max: 30
+  -
+    type: "float"
+    name: "amount_1"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "float"
+    name: "amount_2"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "date"
+    name: "update_ts"
+    increment: true
+    as: "LONG"
+    diff: 10
+    range:
+      min: "2018-06-01T07:00:00"

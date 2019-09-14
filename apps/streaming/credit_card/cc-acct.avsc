@@ -1,0 +1,34 @@
+{
+  "type": "record",
+  "name": "cc_acct",
+  "fields": [
+    {
+      "name": "ccn",
+      "type": "string"
+    },
+    {
+      "name": "first_name",
+      "type": "string"
+    },
+    {
+      "name": "last_name",
+      "type": "string"
+    },
+    {
+      "name": "street_num",
+      "type": "int"
+    },
+    {
+      "name": "street",
+      "type": "string"
+    },
+    {
+      "name": "st",
+      "type": "string"
+    },
+    {
+      "name": "update_ts",
+      "type": "long"
+    }
+  ]
+}

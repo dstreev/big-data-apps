@@ -1,0 +1,48 @@
+- import_playbook:    ../common/kinit.yaml
+
+- hosts: sdlc
+  vars:
+    db:      airline_perf
+    basedir: /warehouse/tablespace/external/hive
+    etl_hive: hive
+    analytic_hive: hive -c llap
+    spark_shell: spark-shell --jars /usr/hdp/current/hive_warehouse_connector/hive-warehouse-connector-assembly.jar
+    ap_files:
+      - 2018-01
+      - 2018-02
+      - 2018-03
+      - 2018-04
+      - 2018-05
+      - 2018-06
+      - 2018-07
+      - 2018-08
+      - 2018-09
+      - 2018-10
+      - 2018-11
+      - 2018-12
+      - 2019-01
+      - 2019-02
+      - 2019-03
+      - 2019-04
+      - 2019-05
+      - 2019-06
+
+  tasks:
+    - name: Copy Spark Script 1
+      copy:
+        src:   spark/basic_select.scala
+        dest:  '{{ ansible_env.HOME }}/airline_perf/spark/basic_select.scala'
+        force: yes
+        mode:  '0644'
+      tags:
+        - setup
+
+    - name: Load Managed Tables
+      shell: '{{ spark_shell }}
+      '
+      register: bl_output
+      loop:
+        '{{ ap_files }}'
+      tags:
+        - sqlbuild
+

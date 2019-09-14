@@ -1,0 +1,879 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="4.0" jmeter="4.0 r1823414">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="TPCDS Load Test" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="TPCDS Bin ORC Config 1" enabled="true">
+        <boolProp name="autocommit">false</boolProp>
+        <stringProp name="checkQuery">select 1</stringProp>
+        <stringProp name="connectionAge">5000</stringProp>
+        <stringProp name="dataSource">tpcds_1</stringProp>
+        <stringProp name="dbUrl">jdbc:hive2://os05.streever.local:2181,os04.streever.local:2181,os03.streever.local:2181/tpcds_bin_partitioned_orc_250;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2-hive2</stringProp>
+        <stringProp name="driver">org.apache.hive.jdbc.HiveDriver</stringProp>
+        <boolProp name="keepAlive">true</boolProp>
+        <stringProp name="password">password</stringProp>
+        <stringProp name="poolMax">15</stringProp>
+        <stringProp name="timeout">10000</stringProp>
+        <stringProp name="transactionIsolation">TRANSACTION_NONE</stringProp>
+        <stringProp name="trimInterval">60000</stringProp>
+        <stringProp name="username">dstreev</stringProp>
+      </JDBCDataSource>
+      <hashTree/>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TPCDS Sample Queries" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">20</stringProp>
+        <longProp name="ThreadGroup.start_time">1370729701000</longProp>
+        <longProp name="ThreadGroup.end_time">1370729701000</longProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query12" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_item_desc 
+      ,i_category 
+      ,i_class 
+      ,i_current_price
+      ,i_item_id
+      ,sum(ws_ext_sales_price) as itemrevenue 
+      ,sum(ws_ext_sales_price)*100/sum(sum(ws_ext_sales_price)) over
+          (partition by i_class) as revenueratio
+from	
+	web_sales
+    	,item 
+    	,date_dim
+where 
+	web_sales.ws_item_sk = item.i_item_sk 
+  	and item.i_category in (&apos;Jewelry&apos;, &apos;Sports&apos;, &apos;Books&apos;)
+  	and web_sales.ws_sold_date_sk = date_dim.d_date_sk
+	and date_dim.d_date between &apos;2001-01-12&apos; and &apos;2001-02-11&apos;
+group by 
+	i_item_id
+        ,i_item_desc 
+        ,i_category
+        ,i_class
+        ,i_current_price
+order by 
+	i_category
+        ,i_class
+        ,i_item_id
+        ,i_item_desc
+        ,revenueratio
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query13" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select avg(ss_quantity)
+       ,avg(ss_ext_sales_price)
+       ,avg(ss_ext_wholesale_cost)
+       ,sum(ss_ext_wholesale_cost)
+ from store_sales
+     ,store
+     ,customer_demographics
+     ,household_demographics
+     ,customer_address
+     ,date_dim
+ where store.s_store_sk = store_sales.ss_store_sk
+ and  store_sales.ss_sold_date_sk = date_dim.d_date_sk and date_dim.d_year = 2001
+ and((store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = store_sales.ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;M&apos;
+  and customer_demographics.cd_education_status = &apos;4 yr Degree&apos;
+  and store_sales.ss_sales_price between 100.00 and 150.00
+  and household_demographics.hd_dep_count = 3   
+     )or
+     (store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = store_sales.ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;D&apos;
+  and customer_demographics.cd_education_status = &apos;Primary&apos;
+  and store_sales.ss_sales_price between 50.00 and 100.00   
+  and household_demographics.hd_dep_count = 1
+     ) or 
+     (store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;U&apos;
+  and customer_demographics.cd_education_status = &apos;Advanced Degree&apos;
+  and store_sales.ss_sales_price between 150.00 and 200.00 
+  and household_demographics.hd_dep_count = 1  
+     ))
+ and((store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;KY&apos;, &apos;GA&apos;, &apos;NM&apos;)
+  and store_sales.ss_net_profit between 100 and 200  
+     ) or
+     (store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;MT&apos;, &apos;OR&apos;, &apos;IN&apos;)
+  and store_sales.ss_net_profit between 150 and 300  
+     ) or
+     (store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;WI&apos;, &apos;MO&apos;, &apos;WV&apos;)
+  and store_sales.ss_net_profit between 50 and 250  
+     ))
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query15" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  ca_zip
+       ,sum(cs_sales_price)
+ from catalog_sales
+     ,customer
+     ,customer_address
+     ,date_dim
+ where catalog_sales.cs_bill_customer_sk = customer.c_customer_sk
+ 	and customer.c_current_addr_sk = customer_address.ca_address_sk 
+ 	and ( substr(ca_zip,1,5) in (&apos;85669&apos;, &apos;86197&apos;,&apos;88274&apos;,&apos;83405&apos;,&apos;86475&apos;,
+                                   &apos;85392&apos;, &apos;85460&apos;, &apos;80348&apos;, &apos;81792&apos;)
+ 	      or customer_address.ca_state in (&apos;CA&apos;,&apos;WA&apos;,&apos;GA&apos;)
+ 	      or catalog_sales.cs_sales_price &gt; 500)
+ 	and catalog_sales.cs_sold_date_sk = date_dim.d_date_sk
+ 	and date_dim.d_qoy = 2 and date_dim.d_year = 2000
+ group by ca_zip
+ order by ca_zip
+ limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query17" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_item_id
+       ,i_item_desc
+       ,s_state
+       ,count(ss_quantity) as store_sales_quantitycount
+       ,avg(ss_quantity) as store_sales_quantityave
+       ,stddev_samp(ss_quantity) as store_sales_quantitystdev
+       ,stddev_samp(ss_quantity)/avg(ss_quantity) as store_sales_quantitycov
+       ,count(sr_return_quantity) as_store_returns_quantitycount
+       ,avg(sr_return_quantity) as_store_returns_quantityave
+       ,stddev_samp(sr_return_quantity) as_store_returns_quantitystdev
+       ,stddev_samp(sr_return_quantity)/avg(sr_return_quantity) as store_returns_quantitycov
+       ,count(cs_quantity) as catalog_sales_quantitycount ,avg(cs_quantity) as catalog_sales_quantityave
+       ,stddev_samp(cs_quantity)/avg(cs_quantity) as catalog_sales_quantitystdev
+       ,stddev_samp(cs_quantity)/avg(cs_quantity) as catalog_sales_quantitycov
+ from store_sales
+     ,store_returns
+     ,catalog_sales
+     ,date_dim d1
+     ,date_dim d2
+     ,date_dim d3
+     ,store
+     ,item
+ where d1.d_quarter_name = &apos;2000Q1&apos;
+   and d1.d_date_sk = store_sales.ss_sold_date_sk
+   and item.i_item_sk = store_sales.ss_item_sk
+   and store.s_store_sk = store_sales.ss_store_sk
+   and store_sales.ss_customer_sk = store_returns.sr_customer_sk
+   and store_sales.ss_item_sk = store_returns.sr_item_sk
+   and store_sales.ss_ticket_number = store_returns.sr_ticket_number
+   and store_returns.sr_returned_date_sk = d2.d_date_sk
+   and d2.d_quarter_name in (&apos;2000Q1&apos;,&apos;2000Q2&apos;,&apos;2000Q3&apos;)
+   and store_returns.sr_customer_sk = catalog_sales.cs_bill_customer_sk
+   and store_returns.sr_item_sk = catalog_sales.cs_item_sk
+   and catalog_sales.cs_sold_date_sk = d3.d_date_sk
+   and d3.d_quarter_name in (&apos;2000Q1&apos;,&apos;2000Q2&apos;,&apos;2000Q3&apos;)
+ group by i_item_id
+         ,i_item_desc
+         ,s_state
+ order by i_item_id
+         ,i_item_desc
+         ,s_state
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query18" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_item_id,
+        ca_country,
+        ca_state, 
+        ca_county,
+        avg( cast(cs_quantity as decimal(12,2))) agg1,
+        avg( cast(cs_list_price as decimal(12,2))) agg2,
+        avg( cast(cs_coupon_amt as decimal(12,2))) agg3,
+        avg( cast(cs_sales_price as decimal(12,2))) agg4,
+        avg( cast(cs_net_profit as decimal(12,2))) agg5,
+        avg( cast(c_birth_year as decimal(12,2))) agg6,
+        avg( cast(cd1.cd_dep_count as decimal(12,2))) agg7
+ from catalog_sales, date_dim, customer_demographics cd1, item, customer, customer_address, 
+      customer_demographics cd2
+ where catalog_sales.cs_sold_date_sk = date_dim.d_date_sk and
+       catalog_sales.cs_item_sk = item.i_item_sk and
+       catalog_sales.cs_bill_cdemo_sk = cd1.cd_demo_sk and
+       catalog_sales.cs_bill_customer_sk = customer.c_customer_sk and
+       cd1.cd_gender = &apos;M&apos; and 
+       cd1.cd_education_status = &apos;College&apos; and
+       customer.c_current_cdemo_sk = cd2.cd_demo_sk and
+       customer.c_current_addr_sk = customer_address.ca_address_sk and
+       c_birth_month in (9,5,12,4,1,10) and
+       d_year = 2001 and
+       ca_state in (&apos;ND&apos;,&apos;WI&apos;,&apos;AL&apos;
+                   ,&apos;NC&apos;,&apos;OK&apos;,&apos;MS&apos;,&apos;TN&apos;)
+ group by i_item_id, ca_country, ca_state, ca_county with rollup
+ order by ca_country,
+        ca_state, 
+        ca_county,
+	i_item_id
+ limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query19" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">
+select  i_brand_id brand_id, i_brand brand, i_manufact_id, i_manufact,
+ 	sum(ss_ext_sales_price) ext_price
+ from date_dim, store_sales, item,customer,customer_address,store
+ where date_dim.d_date_sk = store_sales.ss_sold_date_sk
+   and store_sales.ss_item_sk = item.i_item_sk
+   and i_manager_id=7
+   and d_moy=11
+   and d_year=1999
+   and store_sales.ss_customer_sk = customer.c_customer_sk 
+   and customer.c_current_addr_sk = customer_address.ca_address_sk
+   and substr(ca_zip,1,5) &lt;&gt; substr(s_zip,1,5) 
+   and store_sales.ss_store_sk = store.s_store_sk 
+ group by i_brand
+      ,i_brand_id
+      ,i_manufact_id
+      ,i_manufact
+ order by ext_price desc
+         ,i_brand
+         ,i_brand_id
+         ,i_manufact_id
+         ,i_manufact
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query20" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_item_desc 
+       ,i_category 
+       ,i_class 
+       ,i_current_price
+       ,i_item_id
+       ,sum(cs_ext_sales_price) as itemrevenue 
+       ,sum(cs_ext_sales_price)*100/sum(sum(cs_ext_sales_price)) over
+           (partition by i_class) as revenueratio
+ from	catalog_sales
+     ,item 
+     ,date_dim
+ where catalog_sales.cs_item_sk = item.i_item_sk 
+   and i_category in (&apos;Jewelry&apos;, &apos;Sports&apos;, &apos;Books&apos;)
+   and catalog_sales.cs_sold_date_sk = date_dim.d_date_sk
+ and d_date between &apos;2001-01-12&apos; and &apos;2001-02-11&apos;
+ group by i_item_id
+         ,i_item_desc 
+         ,i_category
+         ,i_class
+         ,i_current_price
+ order by i_category
+         ,i_class
+         ,i_item_id
+         ,i_item_desc
+         ,revenueratio
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query21" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  *
+ from(select w_warehouse_name
+            ,i_item_id
+            ,sum(case when (cast(d_date as date) &lt; cast (&apos;1998-04-08&apos; as date))
+	                then inv_quantity_on_hand 
+                      else 0 end) as inv_before
+            ,sum(case when (cast(d_date as date) &gt;= cast (&apos;1998-04-08&apos; as date))
+                      then inv_quantity_on_hand 
+                      else 0 end) as inv_after
+   from inventory
+       ,warehouse
+       ,item
+       ,date_dim
+   where i_current_price between 0.99 and 1.49
+     and item.i_item_sk          = inventory.inv_item_sk
+     and inventory.inv_warehouse_sk   = warehouse.w_warehouse_sk
+     and inventory.inv_date_sk    = date_dim.d_date_sk
+     and d_date between &apos;1998-03-09&apos; and &apos;1998-05-07&apos;
+   group by w_warehouse_name, i_item_id) x
+ where (case when inv_before &gt; 0 
+             then inv_after / inv_before 
+             else null
+             end) between 2.0/3.0 and 3.0/2.0
+ order by w_warehouse_name
+         ,i_item_id
+ limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query22" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_product_name
+             ,i_brand
+             ,i_class
+             ,i_category
+             ,avg(inv_quantity_on_hand) qoh
+       from inventory
+           ,date_dim
+           ,item
+           ,warehouse
+       where inventory.inv_date_sk=date_dim.d_date_sk
+              and inventory.inv_item_sk=item.i_item_sk
+              and inventory.inv_warehouse_sk = warehouse.w_warehouse_sk
+              and date_dim.d_month_seq between 1193 and 1193 + 11
+       group by i_product_name
+                       ,i_brand
+                       ,i_class
+                       ,i_category with rollup
+order by qoh, i_product_name, i_brand, i_class, i_category
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query24" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">with ssales as
+(select c_last_name
+      ,c_first_name
+      ,s_store_name
+      ,ca_state
+      ,s_state
+      ,i_color
+      ,i_current_price
+      ,i_manager_id
+      ,i_units
+      ,i_size
+      ,sum(ss_sales_price) netpaid
+from store_sales
+    ,store_returns
+    ,store
+    ,item
+    ,customer
+    ,customer_address
+where ss_ticket_number = sr_ticket_number
+  and ss_item_sk = sr_item_sk
+  and ss_customer_sk = c_customer_sk
+  and ss_item_sk = i_item_sk
+  and ss_store_sk = s_store_sk
+  and c_birth_country = upper(ca_country)
+  and s_zip = ca_zip
+and s_market_id=7
+group by c_last_name
+        ,c_first_name
+        ,s_store_name
+        ,ca_state
+        ,s_state
+        ,i_color
+        ,i_current_price
+        ,i_manager_id
+        ,i_units
+        ,i_size)
+select c_last_name
+      ,c_first_name
+      ,s_store_name
+      ,sum(netpaid) paid
+from ssales
+where i_color = &apos;orchid&apos;
+group by c_last_name
+        ,c_first_name
+        ,s_store_name
+having sum(netpaid) &gt; (select 0.05*avg(netpaid)
+                                 from ssales)
+
+
+with ssales as
+(select c_last_name
+      ,c_first_name
+      ,s_store_name
+      ,ca_state
+      ,s_state
+      ,i_color
+      ,i_current_price
+      ,i_manager_id
+      ,i_units
+      ,i_size
+      ,sum(ss_sales_price) netpaid
+from store_sales
+    ,store_returns
+    ,store
+    ,item
+    ,customer
+    ,customer_address
+where ss_ticket_number = sr_ticket_number
+  and ss_item_sk = sr_item_sk
+  and ss_customer_sk = c_customer_sk
+  and ss_item_sk = i_item_sk
+  and ss_store_sk = s_store_sk
+  and c_birth_country = upper(ca_country)
+  and s_zip = ca_zip
+  and s_market_id = 7
+group by c_last_name
+        ,c_first_name
+        ,s_store_name
+        ,ca_state
+        ,s_state
+        ,i_color
+        ,i_current_price
+        ,i_manager_id
+        ,i_units
+        ,i_size)
+select c_last_name
+      ,c_first_name
+      ,s_store_name
+      ,sum(netpaid) paid
+from ssales
+where i_color = &apos;chiffon&apos;
+group by c_last_name
+        ,c_first_name
+        ,s_store_name
+having sum(netpaid) &gt; (select 0.05*avg(netpaid)
+                           from ssales)
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query89" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="query">select  *
+from(
+select i_category, i_class, i_brand,
+       s_store_name, s_company_name,
+       d_moy,
+       sum(ss_sales_price) sum_sales,
+       avg(sum(ss_sales_price)) over
+         (partition by i_category, i_brand, s_store_name, s_company_name)
+         avg_monthly_sales
+from item, store_sales, date_dim, store
+where store_sales.ss_item_sk = item.i_item_sk and
+      store_sales.ss_sold_date_sk = date_dim.d_date_sk and
+      store_sales.ss_store_sk = store.s_store_sk and
+      d_year in (2000) and
+        ((i_category in (&apos;Home&apos;,&apos;Books&apos;,&apos;Electronics&apos;) and
+          i_class in (&apos;wallpaper&apos;,&apos;parenting&apos;,&apos;musical&apos;)
+         )
+      or (i_category in (&apos;Shoes&apos;,&apos;Jewelry&apos;,&apos;Men&apos;) and
+          i_class in (&apos;womens&apos;,&apos;birdal&apos;,&apos;pants&apos;) 
+        ))
+group by i_category, i_class, i_brand,
+         s_store_name, s_company_name, d_moy) tmp1
+where case when (avg_monthly_sales &lt;&gt; 0) then (abs(sum_sales - avg_monthly_sales) / avg_monthly_sales) else null end &gt; 0.1
+order by sum_sales - avg_monthly_sales, s_store_name
+limit 100
+
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="variableNames">col1</stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query90" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  cast(amc as decimal(15,4))/cast(pmc as decimal(15,4)) am_pm_ratio
+ from ( select count(*) amc
+       from web_sales, household_demographics , time_dim, web_page
+       where ws_sold_time_sk = time_dim.t_time_sk
+         and ws_ship_hdemo_sk = household_demographics.hd_demo_sk
+         and ws_web_page_sk = web_page.wp_web_page_sk
+         and time_dim.t_hour between 6 and 6+1
+         and household_demographics.hd_dep_count = 8
+         and web_page.wp_char_count between 5000 and 5200) at,
+      ( select count(*) pmc
+       from web_sales, household_demographics , time_dim, web_page
+       where ws_sold_time_sk = time_dim.t_time_sk
+         and ws_ship_hdemo_sk = household_demographics.hd_demo_sk
+         and ws_web_page_sk = web_page.wp_web_page_sk
+         and time_dim.t_hour between 14 and 14+1
+         and household_demographics.hd_dep_count = 8
+         and web_page.wp_char_count between 5000 and 5200) pt
+ order by am_pm_ratio
+ limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query92" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT sum(case when ssci.customer_sk is not null and csci.customer_sk is null then 1
+                                 else 0 end) as store_only,
+               sum(case when ssci.customer_sk is null and csci.customer_sk is not null then 1
+                                else 0 end) as catalog_only,
+               sum(case when ssci.customer_sk is not null and csci.customer_sk is not null then 1 
+                                 else 0 end) as store_and_catalog
+FROM (SELECT ss.ss_customer_sk as customer_sk,
+                             ss.ss_item_sk as item_sk
+             FROM store_sales ss
+             JOIN date_dim d1 ON (ss.ss_sold_date_sk = d1.d_date_sk)
+             WHERE d1.d_month_seq &gt;= 1206 and
+                            d1.d_month_seq &lt;= 1217
+             GROUP BY ss.ss_customer_sk, ss.ss_item_sk) ssci
+FULL OUTER JOIN (SELECT cs.cs_bill_customer_sk as customer_sk,
+                                                   cs.cs_item_sk as item_sk
+                                   FROM catalog_sales cs
+                                   JOIN date_dim d2 ON (cs.cs_sold_date_sk = d2.d_date_sk)
+                                   WHERE d2.d_month_seq &gt;= 1206 and
+                                                  d2.d_month_seq &lt;= 1217
+                                   GROUP BY cs.cs_bill_customer_sk, cs.cs_item_sk) csci
+ON (ssci.customer_sk=csci.customer_sk and
+        ssci.item_sk = csci.item_sk)</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query32" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT sum(cs1.cs_ext_discount_amt) as excess_discount_amount
+FROM (SELECT cs.cs_item_sk as cs_item_sk,
+                             cs.cs_ext_discount_amt as cs_ext_discount_amt
+             FROM catalog_sales cs
+             JOIN date_dim d ON (d.d_date_sk = cs.cs_sold_date_sk)
+             WHERE d.d_date between &apos;2000-01-27&apos; and &apos;2000-04-27&apos;) cs1
+JOIN item i ON (i.i_item_sk = cs1.cs_item_sk)
+JOIN (SELECT cs2.cs_item_sk as cs_item_sk,
+                          1.3 * avg(cs_ext_discount_amt) as avg_cs_ext_discount_amt
+           FROM (SELECT cs.cs_item_sk as cs_item_sk,
+                                        cs.cs_ext_discount_amt as cs_ext_discount_amt
+                        FROM catalog_sales cs
+                        JOIN date_dim d ON (d.d_date_sk = cs.cs_sold_date_sk)
+                        WHERE d.d_date between &apos;2000-01-27&apos; and &apos;2000-04-27&apos;) cs2
+                        GROUP BY cs2.cs_item_sk) tmp1
+ON (i.i_item_sk = tmp1.cs_item_sk)
+WHERE i.i_manufact_id = 436 and
+               cs1.cs_ext_discount_amt &gt; tmp1.avg_cs_ext_discount_amt</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TPCDS Sample Queries" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">2</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">20</stringProp>
+        <longProp name="ThreadGroup.start_time">1370729701000</longProp>
+        <longProp name="ThreadGroup.end_time">1370729701000</longProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query12" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select  i_item_desc 
+      ,i_category 
+      ,i_class 
+      ,i_current_price
+      ,i_item_id
+      ,sum(ws_ext_sales_price) as itemrevenue 
+      ,sum(ws_ext_sales_price)*100/sum(sum(ws_ext_sales_price)) over
+          (partition by i_class) as revenueratio
+from	
+	web_sales
+    	,item 
+    	,date_dim
+where 
+	web_sales.ws_item_sk = item.i_item_sk 
+  	and item.i_category in (&apos;Jewelry&apos;, &apos;Sports&apos;, &apos;Books&apos;)
+  	and web_sales.ws_sold_date_sk = date_dim.d_date_sk
+	and date_dim.d_date between &apos;2001-01-12&apos; and &apos;2001-02-11&apos;
+group by 
+	i_item_id
+        ,i_item_desc 
+        ,i_category
+        ,i_class
+        ,i_current_price
+order by 
+	i_category
+        ,i_class
+        ,i_item_id
+        ,i_item_desc
+        ,revenueratio
+limit 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query13" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">select avg(ss_quantity)
+       ,avg(ss_ext_sales_price)
+       ,avg(ss_ext_wholesale_cost)
+       ,sum(ss_ext_wholesale_cost)
+ from store_sales
+     ,store
+     ,customer_demographics
+     ,household_demographics
+     ,customer_address
+     ,date_dim
+ where store.s_store_sk = store_sales.ss_store_sk
+ and  store_sales.ss_sold_date_sk = date_dim.d_date_sk and date_dim.d_year = 2001
+ and((store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = store_sales.ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;M&apos;
+  and customer_demographics.cd_education_status = &apos;4 yr Degree&apos;
+  and store_sales.ss_sales_price between 100.00 and 150.00
+  and household_demographics.hd_dep_count = 3   
+     )or
+     (store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = store_sales.ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;D&apos;
+  and customer_demographics.cd_education_status = &apos;Primary&apos;
+  and store_sales.ss_sales_price between 50.00 and 100.00   
+  and household_demographics.hd_dep_count = 1
+     ) or 
+     (store_sales.ss_hdemo_sk=household_demographics.hd_demo_sk
+  and customer_demographics.cd_demo_sk = ss_cdemo_sk
+  and customer_demographics.cd_marital_status = &apos;U&apos;
+  and customer_demographics.cd_education_status = &apos;Advanced Degree&apos;
+  and store_sales.ss_sales_price between 150.00 and 200.00 
+  and household_demographics.hd_dep_count = 1  
+     ))
+ and((store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;KY&apos;, &apos;GA&apos;, &apos;NM&apos;)
+  and store_sales.ss_net_profit between 100 and 200  
+     ) or
+     (store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;MT&apos;, &apos;OR&apos;, &apos;IN&apos;)
+  and store_sales.ss_net_profit between 150 and 300  
+     ) or
+     (store_sales.ss_addr_sk = customer_address.ca_address_sk
+  and customer_address.ca_country = &apos;United States&apos;
+  and customer_address.ca_state in (&apos;WI&apos;, &apos;MO&apos;, &apos;WV&apos;)
+  and store_sales.ss_net_profit between 50 and 250  
+     ))
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="ForOne" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <intProp name="LoopController.loops">-1</intProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">10</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="query32" enabled="true">
+          <stringProp name="dataSource">tpcds_1</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT sum(cs1.cs_ext_discount_amt) as excess_discount_amount
+FROM (SELECT cs.cs_item_sk as cs_item_sk,
+                             cs.cs_ext_discount_amt as cs_ext_discount_amt
+             FROM catalog_sales cs
+             JOIN date_dim d ON (d.d_date_sk = cs.cs_sold_date_sk)
+             WHERE d.d_date between &apos;2000-01-27&apos; and &apos;2000-04-27&apos;) cs1
+JOIN item i ON (i.i_item_sk = cs1.cs_item_sk)
+JOIN (SELECT cs2.cs_item_sk as cs_item_sk,
+                          1.3 * avg(cs_ext_discount_amt) as avg_cs_ext_discount_amt
+           FROM (SELECT cs.cs_item_sk as cs_item_sk,
+                                        cs.cs_ext_discount_amt as cs_ext_discount_amt
+                        FROM catalog_sales cs
+                        JOIN date_dim d ON (d.d_date_sk = cs.cs_sold_date_sk)
+                        WHERE d.d_date between &apos;2000-01-27&apos; and &apos;2000-04-27&apos;) cs2
+                        GROUP BY cs2.cs_item_sk) tmp1
+ON (i.i_item_sk = tmp1.cs_item_sk)
+WHERE i.i_manufact_id = 436 and
+               cs1.cs_ext_discount_amt &gt; tmp1.avg_cs_ext_discount_amt</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>false</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>true</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <hostname>true</hostname>
+            <threadCounts>true</threadCounts>
+            <sampleCount>true</sampleCount>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

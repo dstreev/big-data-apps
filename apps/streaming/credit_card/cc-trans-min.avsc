@@ -1,0 +1,26 @@
+{
+  "type": "record",
+  "name": "cc_trans_min",
+  "fields": [
+    {
+      "name": "cc_trans",
+      "type": "string"
+    },
+    {
+      "name": "ccn",
+      "type": "string"
+    },
+    {
+      "name": "trans_ts",
+      "type": "string"
+    },
+    {
+      "name": "st",
+      "type": "string"
+    },
+    {
+      "name": "amnt",
+      "type": "double"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+- hosts: sdlc
+  tasks:
+  vars_prompt:
+    - name: "kerberized"
+      prompt: "Is environment secure (Kerberized) (y/n)?"
+      default: "n"
+
+  tasks:
+    - name: Kerberos Check
+      shell: klist
+      register: klist
+      ignore_errors: True
+      when: kerberized == 'y'
+      tags:
+        - kerb
+
+#    - debug:
+#        var: klist
+#      when: kerberized == 'y'
+
+    - debug:
+        msg: Kerberos Ticket - {{ klist.stdout }}
+      when: kerberized == 'y' and klist.failed == false
+      tags:
+        - kerb
+
+    - pause:
+        prompt: "Enter Kerberos password"
+        echo: no
+      register: kpasswd
+      when: kerberized == 'y' and klist.failed
+      tags:
+        - kerb
+
+#    - debug:
+#        var: kpasswd
+#      when: kerberized == 'y' and klist.failed
+#      tags:
+#        - kerb
+
+    - name: Kinit
+      shell: echo '{{ kpasswd.user_input }}' | kinit
+      when: kerberized == 'y' and klist.failed
+      tags:
+        - kerb

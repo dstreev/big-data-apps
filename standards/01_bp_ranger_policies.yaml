@@ -1,0 +1,1080 @@
+# These are the base Best Practice Policies for Ranger that need to be setup
+#    fully enable Ranger HDFS Authorization.
+# By setting the HDFS->Advanced ranger-hdfs-security: xasecure.add-hadoop-authorization=false
+#    the posix permissions will no longer be evaluated if a Ranger policy doesn't match.
+# There policies are required to get all the other services working with this model.
+
+- hosts:                       sdlc
+
+  tasks:
+    # REST Calls with Ansible: https://linuxctl.com/2017/01/ansible---interacting-with-external-rest-api/
+
+    - name:                    User 'all-path' Policy Additions (for Ambari File Viewer)
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - User All-Path Policy Additions",
+            "description":     "Best Practices HDFS Permissions for All Paths",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/","/user"],
+                "isExcludes":  false,
+                "isRecursive": false
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         [],
+              "groups":        ["{{ hadoop_group }}"],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - allpath
+
+    # Setup Hive User with Access to
+    # - /tmp (recursive).  This is where the tpcds generated files will go.
+    # - /apps/hive/warehouse (recursive)
+    # Hive access to user database area
+    # - /user/*/datasets (recursive)
+    # Hive 3 additions
+    # - /warehouse/tablespace/managed
+    # - /warehouse/tablespace/managed
+    - name:                    Hive HDFS Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Hive Superuser Access",
+            "description":     "Best Practices HDFS Permissions for Hive Superuser doas-false",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/hdp","/apps/hive/warehouse","/apps/spark/warehouse","/warehouse/tablespace/managed","/warehouse/tablespace/external", "/tmp"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ hive_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - bp
+        - hive
+
+    - name:                    HDP Hive and Spark Tmp Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Hive and Spark TMP Access",
+            "description":     "Best Practices HDFS Hive Permissions for TMP",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/tmp/hive"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ hive_user }}","{{ spark_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    User Home Directory
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - User Home Directory Access",
+            "description":     "Best Practices HDFS Permissions user home directory",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/user/{USER}","/warehouse/tablespace/external/hive/priv_{USER}.db"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{USER}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - bp
+
+    - name:                    Hive Private User Databases
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hive",
+            "name":            "HDP BP - Private Databases",
+            "description":     "Private User Database Access",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "database":      {
+                "values":      ["priv_{USER}"],
+                "isExcludes":  false,
+                "isRecursive": false
+              },
+              "column":        {
+                "values":      ["*"],
+                "isExcludes":  false,
+                "isRecursive": false
+              },
+              "table":         {
+                "values":      ["*"],
+                "isExcludes":  false,
+                "isRecursive": false
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "select",
+                "isAllowed":   true
+              }, {
+                "type":        "update",
+                "isAllowed":   true
+              }, {
+                "type":        "create",
+                "isAllowed":   true
+              }, {
+                "type":        "drop",
+                "isAllowed":   true
+              }, {
+                "type":        "alter",
+                "isAllowed":   true
+              }, {
+                "type":        "index",
+                "isAllowed":   true
+              }, {
+                "type":        "lock",
+                "isAllowed":   true
+              }, {
+                "type":        "all",
+                "isAllowed":   true
+              }, {
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "repladmin",
+                "isAllowed":   true
+              }, {
+                "type":        "serviceadmin",
+                "isAllowed":   true
+              }],
+              "users":         ["{USER}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - bp
+
+    - name:                    Druid Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Druid Access",
+            "description":     "Best Practices HDFS Permissions for Druid Warehouse",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/apps/druid/warehouse"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ druid_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    HBase Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - HBase Access",
+            "description":     "Best Practices HDFS Permissions for HBase",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/apps/hbase/data","/apps/hbase/staging"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ hbase_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+        - hbase
+
+    - name:                    Yarn Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - YARN Access",
+            "description":     "Best Practices HDFS Permissions for YARN",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/ats","/system/yarn/node-labels"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ yarn_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+        - yarn
+
+    - name:                    HDP App Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - HDP Apps Access",
+            "description":     "Best Practices HDFS Permissions for all HDP Users",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/hdp/apps"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         [],
+              "groups":        ["hadoop"],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - apponly
+
+    # The Spark Thrift Servers access HDFS as Hive and YARN
+    - name:                    HDP Service App Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - HDP Service Apps Access",
+            "description":     "Best Practices HDFS Permissions for all HDP Users",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/","/hdp"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ hive_user }}", "{{ yarn_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - apponly
+        - thrift
+
+    - name:                    HDP App Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - HDP App-Logs Access",
+            "description":     "Best Practices HDFS Permissions for all HDP Users",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/app-logs"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ mapred_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            },{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              },{
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ yarn_user }}","{{ hive_user}}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - applogs
+
+    - name:                    HDP Mapred Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - HDP Mapred Access",
+            "description":     "Best Practices HDFS Permissions for all HDP Users",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/mapred"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ mapred_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            },
+            {
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         [],
+              "groups":        ["hadoop"],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+        - mapred
+
+    - name:                    HDP History Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled": true,
+            "service": "{{ cluster_name }}_hadoop",
+            "name": "HDP BP - History Access",
+            "description": "Best Practices HDFS Permissions for History Access",
+            "isAuditEnabled": true,
+            "resources": {
+              "path": {
+                "values": ["/mr-history", "/spark-history", "/spark2-history"],
+                "isExcludes": false,
+                "isRecursive": true
+              }
+            },
+            "policyItems": [{
+                "accesses": [{
+                  "type": "read",
+                  "isAllowed": true
+                }, {
+                  "type": "write",
+                  "isAllowed": true
+                }, {
+                  "type": "execute",
+                  "isAllowed": true
+                }],
+                "users": ["{{ hive_user }}","{{ mapred_user }}", "{{ spark_user }}"],
+                "groups": [],
+                "conditions": [],
+                "delegateAdmin": false
+              },
+              {
+                "accesses": [{
+                  "type": "read",
+                  "isAllowed": true
+                }, {
+                  "type": "execute",
+                  "isAllowed": true
+                }],
+                "users": [],
+                "groups": ["hadoop"],
+                "conditions": [],
+                "delegateAdmin": false
+              }
+            ]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+        - history
+
+    - name:                    HDP Tmp Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - TMP Access",
+            "description":     "Best Practices HDFS Permissions for TMP",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/tmp"],
+                "isExcludes":  false,
+                "isRecursive": false
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         [],
+              "groups":        ["hadoop"],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    HDP Livy Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Livy Access",
+            "description":     "Best Practices HDFS Permissions for Livy",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/livy-recovery","/livy2-recovery"],
+                "isExcludes":  false,
+                "isRecursive": false
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ livy_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+        - livy
+
+    - name:                    HDP Druid Tmp Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Druid TMP Access",
+            "description":     "Best Practices HDFS Druid Permissions for TMP",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/tmp/druid-indexing"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ druid_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    HDP YARN Tmp Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - YARN TMP Access",
+            "description":     "Best Practices HDFS YARN Permissions for TMP",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/tmp/entity-file-history/active"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ yarn_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    HDP Ambari-QA Tmp Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Ambari-QA Tmp Access",
+            "description":     "Best Practices HDFS Ambari-QA Permissions for TMP",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/tmp/hive/ambari-qa"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ ambari_qa_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - app
+
+    - name:                    Ranger Audit Permissions
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Ranger Audit Access",
+            "description":     "Best Practice HDFS Permissions for Ranger Audit",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/ranger/audit"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ hdfs_user }}","{{ hive_user }}","{{ yarn_user }}", "{{ kafka_user }}", "{{ hbase_user }}", "{{ atlas_user }}", "{{ storm_user }}", "{{ knox_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - audit
+        - ranger
+
+    - name:                    YARN ATS HBase Service Access to HDFS
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+          '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - YARN ATS HBase Service Access",
+            "description":     "Best Practices YARN ATS HBase Distributed Services",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/atsv2/hbase/data"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ yarn_ats_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - yarn
+    - name:                    Smart Sense Activity Analyzer Service Access to HDFS
+      uri:
+        url:                   '{{ ranger_url_base }}/service/public/v2/api/policy'
+        body_format:           json
+        body:
+                               '{
+            "isEnabled":       true,
+            "service":         "{{ cluster_name }}_hadoop",
+            "name":            "HDP BP - Smart Sense Activity Analyzer Service Access",
+            "description":     "Best Practices Smart Sense Activity Analyzer Services",
+            "isAuditEnabled":  true,
+            "resources":       {
+              "path":          {
+                "values":      ["/warehouse/tablespace/external/hive"],
+                "isExcludes":  false,
+                "isRecursive": true
+              }
+            },
+            "policyItems":     [{
+              "accesses":      [{
+                "type":        "read",
+                "isAllowed":   true
+              }, {
+                "type":        "write",
+                "isAllowed":   true
+              }, {
+                "type":        "execute",
+                "isAllowed":   true
+              }],
+              "users":         ["{{ yarn_ats_user }}"],
+              "groups":        [],
+              "conditions":    [],
+              "delegateAdmin": false
+            }]
+          }'
+        method:                POST
+        user:                  '{{ ranger_admin_user }}'
+        password:              '{{ ranger_admin_ldap_password }}'
+        force_basic_auth:      yes
+        status_code:           200,400
+        headers:
+          Content-Type:        "application/json; charset=utf8"
+          X-XSRF-HEADER:       "valid"
+          User-Agent:          "Ansible HDP Best Practices"
+      tags:
+        - yarn

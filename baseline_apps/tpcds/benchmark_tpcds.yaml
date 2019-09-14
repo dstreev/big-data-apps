@@ -1,0 +1,66 @@
+- hosts:          sdlc
+  become:         true
+  become_user:    '{{ user }}'
+
+  vars:
+    tpcds_orc_db: 'tpcds_bin_partitioned_orc_{{ tpcds_size }}'
+    results_file: '{{ ansible_date_time.date}}_{{ ansible_date_time.hour }}-{{ ansible_date_time.minute }}'
+
+  tasks:
+    - name: Binaries Directory
+      file:
+        path: /home/{{ user }}/binaries
+        state: directory
+        mode: 0755
+      tags:
+        - setup
+
+    - name: Download JMeter
+      get_url:
+        url: http://apache.mirrors.lucidnetworks.net//jmeter/binaries/apache-jmeter-4.0.zip
+        dest: /home/{{ user }}/binaries/apache-jmeter-4.0.zip
+        owner: '{{ user }}'
+        mode: 0755
+      tags:
+        - setup
+
+    - name: Unpack JMeter
+      unarchive:
+        src:  /home/{{ user }}/binaries/apache-jmeter-4.0.zip
+        dest: /home/{{ user }}
+        remote_src: yes
+      tags:
+        - setup
+
+    - name: List JDBC Jars
+      find:
+        paths:    /usr/hdp/current/hive-client/jdbc
+        patterns: "*.jar"
+      register:   jdbc_drivers
+      tags:
+        - setup
+
+    - name:       Copy JDBC Files for JMeter
+      copy:
+        src: "{{ item['path'] }}"
+        dest:  /home/{{ user }}/apache-jmeter-4.0/lib/ext/
+        owner: '{{ user }}'
+        mode: 0755
+        remote_src: yes
+      tags:
+        - setup
+      loop:       "{{ jdbc_drivers['files']|flatten(levels=1) }}"
+
+    - name:       Run the analyze sql to build stats for TPCDS Datasets.
+      shell:      cd /home/{{ user }}/hive-testbench; beeline -u "jdbc:hive2://{{ zookeeper_server}}:2181/{{ tpcds_orc_db }};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={{ hs2_zk_namespace }}" -n "{{ tpcds_user }}" -p "{{ user_password }}" -f "./ddl-tpcds/bin_partitioned/analyze.sql"
+      tags:
+        - stats
+
+    - include_tasks: tpcds_queries.yaml
+      loop:
+        - 1
+        - 2
+        - 3
+        - 4
+      loop_control:
+        loop_var: iteration

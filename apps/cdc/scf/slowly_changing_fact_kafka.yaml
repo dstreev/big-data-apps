@@ -1,0 +1,13 @@
+topic:
+  name: "SLOWLY_CHANGING_FACT"
+  headers:
+type:
+  key: "String"
+  value: "String"
+configs:
+  bootstrap.servers: "os10.streever.local:6667,os14.streever.local:6667"
+  acks: "0"
+  client.id: "scf-gen-app-1"
+#  transactional.id: "my-trans-id-1"
+#  batch.size: 3000000
+#  linger.ms: 3000

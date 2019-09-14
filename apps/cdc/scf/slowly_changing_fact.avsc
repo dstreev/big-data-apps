@@ -1,0 +1,38 @@
+{
+  "type": "record",
+  "name": "slowly_changing_fact",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "ip_addr",
+      "type": "string"
+    },
+    {
+      "name": "source",
+      "type": "string"
+    },
+    {
+      "name": "field_1",
+      "type": "string"
+    },
+    {
+      "name": "field_2",
+      "type": "string"
+    },
+    {
+      "name": "amount_1",
+      "type": "double"
+    },
+    {
+      "name": "amount_2",
+      "type": "double"
+    },
+    {
+      "name": "update_ts",
+      "type": "long"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+
+- name:       List the tpcds queries.
+  find:
+    paths:    /home/{{ user }}/hive-testbench/sample-queries-tpcds
+    patterns: "query*.sql"
+  register:   query_files
+
+- name:       Create Result directory
+  file:
+    path:     /home/{{ user }}/tpcds_test_results
+    state:    directory
+    owner:    '{{ user }}'
+    mode:     0755
+
+# - name:     Run the queries
+#   debug:
+#     msg: "Iteration: {{ iteration }} - Query File: {{ item['path'] }} on {{ results_file }}"
+#   loop:     "{{ query_files['files']|flatten(levels=1) }}"
+
+- name:       Running Queries
+  shell:      cd /home/{{ user }}/hive-testbench; echo "---QUERY---,{{ iteration}},{{ item['path'] }}" >> /home/{{ user }}/tpcds_test_results/{{ results_file }}; { time beeline -u "jdbc:hive2://{{ zookeeper_server}}:2181/{{ tpcds_orc_db }};serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={{ hs2_zk_namespace }}" -n "{{ tpcds_user }}" -p "{{ user_password }}" -f "{{ item['path'] }}" >> /home/{{ user }}/tpcds_test_results/{{ results_file }} 2>&1; } >> /home/{{ user }}/tpcds_test_results/{{ results_file }} 2>&1
+  loop:       "{{ query_files['files']|flatten(levels=1) }}"

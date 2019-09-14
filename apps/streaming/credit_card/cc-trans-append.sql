@@ -1,0 +1,12 @@
+USE ${database};
+
+ALTER TABLE CC_TRANS_BRIDGE ADD IF NOT EXISTS PARTITION (processing_cycle="${last.delta.processing.cycle}");
+
+INSERT INTO TABLE CC_TRANS_FROM_INCREMENTAL_APPEND PARTITION (PROCESSING_CYCLE="${acid.processing.cycle.string}")
+SELECT
+  CC_TRANS,CCN,CAST(TRANS_TS as TIMESTAMP),MCC,MRCH_ID,S.STATE,AMNT
+FROM
+     CC_TRANS_BRIDGE CC, STATE S
+WHERE
+  CC.ST = S.ST
+  AND PROCESSING_CYCLE="${last.delta.processing.cycle}";

@@ -1,0 +1,16 @@
+- hosts: sdlc
+  become: true
+  vars:
+    scala_rpm: https://downloads.lightbend.com/scala/2.11.12/scala-2.11.12.rpm
+
+  tasks:
+#    - name: Get Scala RPM
+#      get_url:
+#        url: '{{ scala_rpm }}'
+#        dest: /tmp/
+
+    - name: Install Scala
+      yum:
+        name: '{{ scala_rpm }}'
+        state: present
+        
