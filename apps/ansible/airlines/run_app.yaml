@@ -1,0 +1,148 @@
+- import_playbook:    ../common/kinit.yaml
+
+- hosts: sdlc
+  vars:
+    db:      airline_perf
+    basedir: /warehouse/tablespace/external/hive
+    remote_app_base: airline_perf
+    etl_hive: hive
+    analytic_hive: hive -c llap
+    ap_files:
+      - 2018-01
+      - 2018-02
+      - 2018-03
+      - 2018-04
+      - 2018-05
+      - 2018-06
+      - 2018-07
+      - 2018-08
+      - 2018-09
+      - 2018-10
+      - 2018-11
+      - 2018-12
+      - 2019-01
+      - 2019-02
+      - 2019-03
+      - 2019-04
+      - 2019-05
+      - 2019-06
+
+  tasks:
+    - name: Mkdir for Airline Data
+      file:
+        path:  "{{ ansible_env.HOME }}/{{ remote_app_base }}"
+        state: directory
+        owner: '{{ user }}'
+        mode:  0755
+      tags:
+        - setup
+
+    - name: Create Application Sub-directories
+      file:
+        path:  '{{ ansible_env.HOME }}/{{ remote_app_base }}/{{ item }}'
+        state: directory
+      tags:
+        - setup
+      loop:
+        - sql
+        - scripts
+        - data
+
+    - name: Get Airport Data
+      get_url:
+        url:            https://www.dropbox.com/s/raw/euypgrz6keecvmx/2018-2019_airline_perf.tgz?dl=0
+        dest:           "{{ ansible_env.HOME }}/{{ remote_app_base }}/2018-2019_airline_perf.tgz"
+        force:          no
+        http_agent:     "Mozilla"
+        validate_certs: true
+      tags:
+        - fetch
+
+    - name: Decompress Data
+      unarchive:
+        src:        "{{ ansible_env.HOME }}/{{ remote_app_base }}/2018-2019_airline_perf.tgz"
+        dest:       "{{ ansible_env.HOME }}/{{ remote_app_base }}/data"
+        remote_src: yes
+      tags:
+        - fetch
+
+    - name: Copy Sql Scripts
+      copy:
+        src:   ../../hive-sql/airlines/create.sql
+        dest:  '{{ ansible_env.HOME }}/{{ remote_app_base }}/sql/create.sql'
+        force: yes
+        mode:  '0644'
+      loop:
+        - create.sql
+        - compact.sql
+        - create_alt.sql
+        - reset.sql
+        - init_managed.sql
+        - build_parts.sql
+        - query_01.sql
+        - query_02.sql
+      tags:
+        - setup
+
+    - name: Init External Tables
+      shell: '{{ etl_hive }} --hivevar DB={{ db }} --hivevar BASEDIR={{ basedir }} -f {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/create.sql'
+      register: bl_output
+      tags:
+        - init
+
+    - debug:
+        var: bl_output
+      tags:
+        - init
+
+    - name: Create External Partition Directories
+      shell: hdfs dfs -test -d {{ basedir }}/{{ db }}.db/airline_perf_ext/year_month={{ item }} || hdfs dfs -mkdir -p {{ basedir }}/{{ db }}.db/airline_perf_ext/year_month={{ item }}
+      loop:
+        '{{ ap_files }}'
+      tags:
+        - mkdirhdfs
+        - load
+
+    - name: Load Files into Partitions
+      shell: hdfs dfs -test -f {{ basedir }}/{{ db }}.db/airline_perf_ext/year_month={{ item }}/{{ item }}.csv || hdfs dfs -put {{ ansible_env.HOME }}/{{ remote_app_base }}/data/2018-2019_airline_perf/{{ item }}.csv {{ basedir }}/{{ db }}.db/airline_perf_ext/year_month={{ item }}/
+      loop:
+        '{{ ap_files }}'
+      tags:
+        - load
+        - files
+
+    - name: Copy Spark-Shell Scripts
+      copy:
+        src: ../../scripts/airline/spark-shell/{{ item }}
+        dest: '{{ ansible_env.HOME }}/{{ remote_app_base }}/scripts/{{ item }}'
+        force: yes
+        mode: '0644'
+      tags:
+        - setup
+      loop:
+        - hwx_external_select.scala
+        - hwx_managed_select.scala
+
+    - name: Init Managed Tables
+      shell: '{{ etl_hive }} --hivevar DB={{ db }} -f {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/init_managed.sql'
+      register: bl_output
+      tags:
+        - sqlbuild
+        - managed
+
+#    TODO: Need to overwrite first partition.  Currently we're duplicating the first partition.
+    - name: Load Managed Tables
+      shell: '{{ etl_hive }} --hivevar DB={{ db }} --hivevar AP_PARTITION={{ item }} -f {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/build_parts.sql'
+      register: bl_output
+      loop:
+        '{{ ap_files }}'
+      tags:
+        - sqlbuild
+        - parts
+
+    - name: Compact Managed Tables
+      shell: '{{ etl_hive }} --hivevar DB={{ db }} -f {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/compact.sql'
+      register: bl_output
+      tags:
+        - sqlbuild
+        - compact

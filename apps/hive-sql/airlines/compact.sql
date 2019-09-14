@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS ${DB};
+
+USE ${DB};
+
+ALTER TABLE airline_perf COMPACT 'major';
