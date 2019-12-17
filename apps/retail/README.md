@@ -33,13 +33,17 @@ ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f sche
 # Setup Manage Table Schema
 ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-schema.sql
 
-# Load with Poor Load SQL
-${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/retail-load-poor.sql
+# Load with Good Load SQL
+${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/load-retail.sql
 
-# Rerun Setup Manage Table Schema to Flush previous Load
+export TARGET_DB=${ENV}_retail_poor
+
+# Setup Manage Table Schema for Poor Load
 ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-schema.sql
 
-# Load with Good Load SQL
-${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/retail-load.sql
+# Load with Poor Load SQL
+${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/load-retail-poor.sql
+
+
 
 ```
