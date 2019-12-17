@@ -17,7 +17,7 @@ There are a few script variables:
 - HIVE_DB
 
 ### For Hive/Spark
-```
+```$sql
 export ENV=hive
 export CMD_ALIAS='hive -c llap'
 
@@ -44,6 +44,20 @@ ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f sche
 # Load with Poor Load SQL
 ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/load-retail-poor.sql
 
+```
 
+### Reset
+```$sql
+export ENV=hive
+export CMD_ALIAS='hive -c llap'
+export TARGET_DB=${ENV}_retail
+
+${CMD_ALIAS} --hivevar TARGET_DB=${TARGET_DB} -f schema/drop.sql
+
+export ENV=spark
+export CMD_ALIAS='spark-sql'
+export TARGET_DB=${ENV}_retail
+
+${CMD_ALIAS} --hivevar TARGET_DB=${TARGET_DB} -f schema/drop.sql
 
 ```
