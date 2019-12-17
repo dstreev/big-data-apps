@@ -19,11 +19,9 @@ object VisitTotals {
       .enableHiveSupport() // Key to Integrating with Hive Metastore
       .getOrCreate()
 
-//    spark.sql("show databases").show(100, false)
     spark.sql("USE " + args(0))
 
     val dfc = spark.sql("SELECT * FROM CUSTOMER")
-    //val dfc = spark.sql("SELECT * FROM CUSTOMER WHERE STATE='GA' OR STATE='NY'")
 
     val dfc_state = dfc.filter("STATE = 'GA' OR STATE = 'NY'")
 
@@ -34,9 +32,11 @@ object VisitTotals {
     val df_purchase = spark.sql("SELECT * FROM PURCHASE").groupBy("customer_id").agg(sum("total_purchase"), count("id").alias("purchase_count"))
 
     //val dfj = dfc.join(df_visit_count, col("customer.id") === col("visit.customer_id"), "outer").join(df_purchase, col("id") === col("purchase.customer_id"), "outer")
-    val dfj = dfc_state.join(df_visit_count, col("customer.id") === col("visit.customer_id"), "outer").join(df_purchase, col("id") === col("purchase.customer_id"), "outer")
+    val dfj = dfc_state.join(df_visit_count, col("customer.id") === col("visit.customer_id"), "left").join(df_purchase, col("id") === col("purchase.customer_id"), "left")
 
-    dfj.show(100, false)
+    println( "Record Count: " + dfj.count())
+
+//    dfj.show(100, false)
 
     val total_time = new Date().getTime - start_time.getTime
 

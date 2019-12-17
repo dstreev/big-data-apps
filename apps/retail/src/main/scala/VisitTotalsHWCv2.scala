@@ -35,9 +35,11 @@ object VisitTotalsHWCv2 {
     val df_asVisit = df_visit_count.as("visit")
     val df_asPurchase = df_purchase.as("purchase")
 
-    val dfj = df_asCustomer.join(df_asVisit, col("customer.id") === col("visit.customer_id"), "outer").join(df_asPurchase, col("customer.id") === col("purchase.customer_id"), "outer")
+    val dfj = df_asCustomer.join(df_asVisit, col("customer.id") === col("visit.customer_id"), "left").join(df_asPurchase, col("customer.id") === col("purchase.customer_id"), "left")
 
-    dfj.show(100, false)
+    println( "Record Count: " + dfj.count())
+
+//    dfj.show(100, false)
 
     val total_time = new Date().getTime - start_time.getTime
 

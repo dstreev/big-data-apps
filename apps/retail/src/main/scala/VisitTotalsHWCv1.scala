@@ -46,7 +46,10 @@ object VisitTotalsHWCv1 {
         |    C.STATE = "GA" or C.STATE = "NY"
         |""".stripMargin)
 
-    df.show(100, false)
+
+    println( "Record Count: " + df.count())
+
+//    df.show(100, false)
 
     val total_time = new Date().getTime - start_time.getTime
 
