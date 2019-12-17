@@ -1,0 +1,34 @@
+{
+  "type": "record",
+  "name": "cc_trans",
+  "fields": [
+    {
+      "name": "cc_trans",
+      "type": "string"
+    },
+    {
+      "name": "ccn",
+      "type": "string"
+    },
+    {
+      "name": "trans_ts",
+      "type": "long"
+    },
+    {
+      "name": "mcc",
+      "type": "int"
+    },
+    {
+      "name": "mrch_id",
+      "type": "string"
+    },
+    {
+      "name": "st",
+      "type": "string"
+    },
+    {
+      "name": "amnt",
+      "type": "double"
+    }
+  ]
+}

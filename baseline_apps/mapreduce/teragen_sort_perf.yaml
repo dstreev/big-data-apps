@@ -1,19 +1,85 @@
+- import_playbook:     ../../apps/ansible/common/kinit.yaml
+
 - hosts: sdlc
-  become: true
-  become_user: '{{ user }}'
+#  become: true
+#  become_user: '{{ user }}'
+
+  vars:
+    hdfs_client: "{{ hdfs_client_in | default('/usr/bin/hdfs') }}"
+    hadoop_client: "{{ hadoop_client_in | default('/usr/bin/hadoop') }}"
+    hdfs_home_dir_base: "{{ hdfs_home_dir_base_in | default('/user') }}"
+    hdfs_perf_dir: "{{ hdfs_perf_dir_in | default('perf_data') }}"
+    gen_size: "{{ gen_size_in | default('1Gb') }}"
+    tb: '{{1024|pow(4)}}'
+    gb: '{{1024|pow(3)}}'
+    mb: '{{1024|pow(2)}}'
+    row_size: 100
+    in_out_ratio: '{{ in_out_ratio_in | default(1) }}'
+    mappers: '{{ generators | default(0) }}'
+    # Specify in "Mb"
+    # Override to file size of Teragen Output and
+    #   the number of mappers used to create them.
+    gen_size_mb: "{{ gen_size_mb_in | default(128) }}"
+
+    queue: '{{ queue_in | default("default") }}'
+    tera_jar: '{{ tera_jar_in | default("/usr/hdp/current/hadoop-mapreduce-client/hadoop-mapreduce-examples.jar") }}'
 
   tasks:
-    - name: Create Perf Local Directory
-      file:
-        path: /home/{{ user }}/perf
-        state: directory
-        owner: '{{ user }}'
-        mode: 0744
-    - name: Get MR Teragen/Sort Script
-      get_url:
-        url: https://gist.githubusercontent.com/dstreev/23500ef927467abf97bfba38ef500b03/raw/8e098bdb0c601126590dd9885897d4bf305fc40d/TeraGen_Sort_MR2.sh
-        dest: /home/{{ user }}/perf/TeraGen_Sort_MR2.sh
-        force: yes
-        mode: 0744
-    - name: Teragen/Sort SmokeTest
-      shell: /home/{{ user }}/perf/TeraGen_Sort_MR2.sh --size {{ smoke_tgs_size }} --mappers {{ smoke_tgs_mappers }} --reducers {{ smoke_tgs_reducers }}
+      - name: "Test for existing perf directory: {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}"
+        shell: "{{ hdfs_client }} dfs -test -d {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}"
+        args:
+          warn: no
+        ignore_errors: yes
+        register: hdfs_perf_dir_test
+        tags:
+          - test
+
+      - debug:
+          msg: "Found existing perf directory: {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }} {{ hdfs_perf_dir_test }}"
+        when: hdfs_perf_dir_test['rc'] == 0
+        tags:
+          - test
+
+      - name: "Clean up old perf test {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}"
+        shell: "{{ hdfs_client }} dfs -rm -r -f -skipTrash {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}"
+        when: hdfs_perf_dir_test['rc'] == 0
+        tags:
+          - test
+
+      - set_fact:
+          gen_rows: '{{ gen_size | regex_replace("Tb|tb")|int * tb|int / row_size }}'
+        when: gen_size | regex_search('(Tb|tb)')
+
+      - set_fact:
+          gen_rows: "{{ gen_size | regex_replace('Gb|gb')|int * gb|int / row_size }}"
+        when: gen_size | regex_search('(Gb|gb)')
+
+      - set_fact:
+          gen_rows: "{{ gen_size | regex_replace('Mb|mb')|int * mb|int / row_size }}"
+        when: gen_size | regex_search('(Mb|mb)')
+
+      - set_fact:
+          mapper_count: "{{ gen_rows|int * 100 / (gen_size_mb|int * 1024 * 1024) }}"
+        when: mappers == "0"
+
+      - set_fact:
+          mapper_count: '{{ mappers }}'
+        when: mappers != "0"
+
+      - set_fact:
+          reducer_count: "{{ mapper_count|float|round(0,'ceil') * in_out_ratio|float }}"
+
+      - debug:
+          msg: "Generate {{ gen_rows|int|round }} rows using {{ mapper_count|float|round(0,'ceil')|int }} mappers in TeraGen and {{ reducer_count|float|round(0,'ceil')|int }} reducers in Terasort to correllate file sizes with a ratio of 1:{{ in_out_ratio }}."
+
+      - name: Running TeraGen with {{ mappers }} mappers to generate {{ gen_rows|int|round }} rows in {{ queue }} queue.
+        shell: "{{ hadoop_client }} jar {{ tera_jar }} teragen -Dmapred.job.queue.name={{ queue }} -Dmapred.map.tasks={{ mapper_count|float|round(0,'ceil')|int }} {{ gen_rows|int|round }} {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}/teragen"
+        register: gen_output
+        tags:
+          - gen
+
+      - name: Running TeraSort to sort {{ gen_rows|int|round }} rows in {{ queue }} queue.
+        shell: "{{ hadoop_client }} jar {{ tera_jar }} terasort -Dmapred.job.queue.name={{ queue }} -Dmapred.reduce.tasks={{ reducer_count|float|round(0,'ceil')|int }} {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}/teragen {{ hdfs_home_dir_base }}/{{ ansible_user_id }}/{{ hdfs_perf_dir }}/terasort"
+        register: sort_output
+        tags:
+          - sort

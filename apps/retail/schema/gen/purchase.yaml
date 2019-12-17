@@ -1,0 +1,94 @@
+title: "Customer Purchases"
+description: "Customer Purchase records"
+output:
+  delimiter: "\t"
+  format: "CSV"
+order:
+  - id
+  - customer_id
+  - visit_id
+  - sales_rep
+  - register
+  - transaction_id
+  - discount
+  - discount_code
+  - total_purchase
+  - tender_type
+fields:
+  -
+    type: "seeded.sequence"
+    name: "id"
+    start: 100000
+    seed: "purchase"
+    hash: true
+  -
+    type: "seeded.long"
+    name: "customer_id"
+    seed: "customer"
+    hash: true
+    range:
+      min: 100000
+      max: 200000
+  -
+    type: "seeded.long"
+    name: "visit_id"
+    seed: "visit"
+    hash: true
+    range:
+      min: 100000
+      max: 20100000
+    pool:
+      size: 1000000
+  -
+    type: "string"
+    name: "sales_rep"
+    characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    range:
+      min: 5
+      max: 5
+    pool:
+      size: 200
+  -
+    type: "string"
+    name: "register"
+    characters: "ABC0123456789"
+    range:
+      min: 4
+      max: 4
+    pool:
+      size: 400
+  -
+    type: "seeded.sequence"
+    name: "transaction_id"
+    seed: "transaction"
+    start: 100000
+    hash: true
+  -
+    type: "int"
+    name: "discount"
+    range:
+      min: 0
+      max: 100
+  -
+    type: "string"
+    name: "discount_code"
+    characters: "ABC0123456789"
+    range:
+      min: 4
+      max: 4
+    pool:
+      size: 100
+  - type: "float"
+    name: "total_purchase"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "string"
+    name: "tender_type"
+    pool:
+      items:
+        - CASH
+        - CREDIT_CARD
+        - DEBIT_CARD

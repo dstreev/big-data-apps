@@ -1,0 +1,39 @@
+title: "Customer Visits"
+description: "Customer Visit records"
+output:
+  delimiter: "\t"
+  format: "CSV"
+order:
+  - id
+  - customer_id
+  - visit_ts
+  - stay_time
+fields:
+  -
+    type: "seeded.sequence"
+    name: "id"
+    start: 100000
+    seed: "visit"
+    hash: true
+  -
+    type: "seeded.long"
+    name: "customer_id"
+    seed: "customer"
+    hash: true
+    range:
+      min: 100000
+      max: 200000
+  -
+    type: "date"
+    name: "visit_ts"
+    format: "yyyy-MM-dd HH:mm:ss"
+    increment: true
+    diff: 10000
+    range:
+      min: "2010-01-01T07:00:00"
+  -
+    type: "int"
+    name: "stay_time"
+    range:
+      min: 60
+      max: 6000

@@ -1,0 +1,97 @@
+title: "Customer Records"
+description: "Customer Data records"
+output:
+  delimiter: "\t"
+  format: "CSV"
+order:
+  - id
+  - full_name
+  - address
+  - state
+  - contact_num
+fields:
+  -
+    type: "seeded.sequence"
+    name: "id"
+    start: 100000
+    seed: "customer"
+    hash: true
+  -
+    type: "string"
+    name: "full_name"
+    characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    range:
+      min: 15
+      max: 30
+  -
+    type: "regex"
+    name: "address"
+    regex: "\\d{4,6} [A-Z]{10,20} (RD|ST)"
+  -
+    type: "string"
+    name: "state"
+    pool:
+      items:
+        - AL
+        - AK
+        - AS
+        - AZ
+        - AR
+        - CA
+        - CO
+        - CT
+        - DE
+        - DC
+        - FM
+        - FL
+        - GA
+        - GU
+        - HI
+        - ID
+        - IL
+        - IN
+        - IA
+        - KS
+        - KY
+        - LA
+        - ME
+        - MH
+        - MD
+        - MA
+        - MI
+        - MN
+        - MS
+        - MO
+        - MT
+        - NE
+        - NV
+        - NH
+        - NJ
+        - NM
+        - NY
+        - NC
+        - ND
+        - MP
+        - OH
+        - OK
+        - OR
+        - PW
+        - PA
+        - PR
+        - RI
+        - SC
+        - SD
+        - TN
+        - TX
+        - UT
+        - VT
+        - VI
+        - VA
+        - WA
+        - WV
+        - WI
+        - WY
+  -
+    type: "regex"
+    name: "contact_num"
+    regex: "\\(\\d{3}\\) \\d{3}\\-\\d{4}"
