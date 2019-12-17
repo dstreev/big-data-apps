@@ -22,7 +22,7 @@ export ENV=hive
 export CMD_ALIAS='hive -c llap'
 
 #export ENV=spark
-#export CMD_ALIAS='spark-sql'
+#export CMD_ALIAS='spark-sql --num-executors 50'
 
 export SRC_DB=${ENV}_retail
 export TARGET_DB=${ENV}_retail
@@ -34,7 +34,7 @@ ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f sche
 ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-schema.sql
 
 # Load with Good Load SQL
-${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/load-retail.sql
+${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-load.sql
 
 export TARGET_DB=${ENV}_retail_poor
 
@@ -42,7 +42,7 @@ export TARGET_DB=${ENV}_retail_poor
 ${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-schema.sql
 
 # Load with Poor Load SQL
-${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/load-retail-poor.sql
+${CMD_ALIAS} --hivevar SRC_DB=${SRC_DB} --hivevar TARGET_DB=${TARGET_DB} -f schema/${ENV}-retail-load-poor.sql
 
 ```
 
