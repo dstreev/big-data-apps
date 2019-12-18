@@ -1,1 +1,0 @@
-set hive.optimize.sort.dynamic.partition=true;

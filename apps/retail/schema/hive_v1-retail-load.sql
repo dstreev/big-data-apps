@@ -1,3 +1,5 @@
+SET hive.optimize.sort.dynamic.partition=true;
+
 USE ${TARGET_DB};
 
 INSERT OVERWRITE TABLE
