@@ -3,8 +3,6 @@
 #######################################################
 
 - hosts: sdlc
-  become: true
-  become_user: '{{ tpcds_user }}'
 
   vars:
     hive_testbench: https://github.com/hortonworks/hive-testbench.git

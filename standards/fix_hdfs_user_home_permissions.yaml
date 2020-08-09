@@ -1,0 +1,90 @@
+- hosts: sdlc
+
+  tasks:
+    - name: Group Ownership
+      shell: hdfs dfs -chgrp -R {{ item.user }} /user/{{ item.user }}
+      with_items:
+        - { user: 'anakin'}
+        - { user: 'arya'}
+        - { user: 'bammbamm'}
+        - { user: 'barney'}
+        - { user: 'bedrock'}
+        - { user: 'betty'}
+        - { user: 'cersei'}
+        - { user: 'coruscant'}
+        - { user: 'daenerys'}
+        - { user: 'dstreev'}
+        - { user: 'fred'}
+        - { user: 'hansolo'}
+        - { user: 'jonsnow'}
+        - { user: 'kingslanding'}
+        - { user: 'leia'}
+        - { user: 'luke'}
+        - { user: 'padme'}
+        - { user: 'pebbles'}
+        - { user: 'sansa'}
+        - { user: 'tatooine'}
+        - { user: 'tyrion'}
+        - { user: 'wilma'}
+        - { user: 'winterfell'}
+        - { user: 'yoda'}
+      tags:
+        - hdfs
+    - name: Home Permissions
+      shell: hdfs dfs -chmod -R 0700 /user/{{ item.user }}
+      with_items:
+        - { user: 'anakin'}
+        - { user: 'arya'}
+        - { user: 'bammbamm'}
+        - { user: 'barney'}
+        - { user: 'bedrock'}
+        - { user: 'betty'}
+        - { user: 'cersei'}
+        - { user: 'coruscant'}
+        - { user: 'daenerys'}
+        - { user: 'dstreev'}
+        - { user: 'fred'}
+        - { user: 'hansolo'}
+        - { user: 'jonsnow'}
+        - { user: 'kingslanding'}
+        - { user: 'leia'}
+        - { user: 'luke'}
+        - { user: 'padme'}
+        - { user: 'pebbles'}
+        - { user: 'sansa'}
+        - { user: 'tatooine'}
+        - { user: 'tyrion'}
+        - { user: 'wilma'}
+        - { user: 'winterfell'}
+        - { user: 'yoda'}
+      tags:
+        - hdfs
+    - name: Private DB's
+      shell: hive -e "alter database priv_{{ item.user }} SET LOCATION 'hdfs://HOME90/warehouse/tablespace/managed/hive/priv_{{ item.user }}.db'"
+      with_items:
+        - { user: 'anakin'}
+        - { user: 'arya'}
+        - { user: 'bammbamm'}
+        - { user: 'barney'}
+        - { user: 'bedrock'}
+        - { user: 'betty'}
+        - { user: 'cersei'}
+        - { user: 'coruscant'}
+        - { user: 'daenerys'}
+        - { user: 'dstreev'}
+        - { user: 'fred'}
+        - { user: 'hansolo'}
+        - { user: 'jonsnow'}
+        - { user: 'kingslanding'}
+        - { user: 'leia'}
+        - { user: 'luke'}
+        - { user: 'padme'}
+        - { user: 'pebbles'}
+        - { user: 'sansa'}
+        - { user: 'tatooine'}
+        - { user: 'tyrion'}
+        - { user: 'wilma'}
+        - { user: 'winterfell'}
+        - { user: 'yoda'}
+      tags:
+        - hive

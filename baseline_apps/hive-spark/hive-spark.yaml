@@ -1,0 +1,46 @@
+- hosts: sdlc
+  become: true
+  become_user: '{{ user }}'
+
+  vars:
+    baseline_apps_dir: ./baseline_apps
+    target_table: my_table
+    DB: priv_{{ ansible_env.USER }}
+  tasks:
+    - name: debug through ansible.env
+      debug: var=ansible_env.HOME
+
+    - name: Create Remote Working Directory
+      file:
+        path: '{{ ansible_env.HOME }}/{{ baseline_apps_dir }}/hive-spark/ddl'
+        state: directory
+    - name: Copy sources
+      copy:
+        src: '{{ item.file }}'
+        dest: '{{ ansible_env.HOME }}/{{ baseline_apps_dir }}/hive-spark/{{ item.file }}'
+      with_items:
+        - { file: './ddl/managed_create.sql' }
+        - { file: './ddl/managed_create_loc.sql' }
+        - { file: './ddl/ext_create.sql' }
+        - { file: './ddl/ext_create_loc.sql' }
+        - { file: 'init-hive.sql' }
+
+    - name: Create Table {{ target_table }}
+      shell:
+        cmd: hive --hivevar DB={{ DB }} --hivevar USER={{ ansible_env.USER }} --hivevar QUERY_CACHE_ENABLE=false --hivevar TEST_TABLE={{ target_table }} -i {{ ansible_env.HOME }}/{{ baseline_apps_dir }}/hive-spark/init-hive.sql -f {{ ansible_env.HOME }}/{{ baseline_apps_dir }}/hive-spark/{{ item.run_script }}
+      register: hive_result
+      ignore_errors: true
+      with_items:
+        - { run_script: 'ddl/managed_create.sql'}
+        - { run_script: 'ddl/managed_create_loc.sql'}
+        - { run_script: 'ddl/ext_create.sql'}
+        - { run_script: 'ddl/ext_create_loc.sql'}
+
+    - name: Managed Success
+      debug: 'msg={{ hive_result.results[0].stdout_lines}}'
+    - name: Managed Failure
+      debug: 'msg={{ hive_result.results[1].stderr_lines}}'
+    - name: External Create
+      debug: 'msg={{ hive_result.results[2]}}.stdout_lines'
+    - name: Exteral Create Loc
+      debug: 'msg={{ hive_result.results[3]}}.stdout_lines'

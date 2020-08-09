@@ -1,0 +1,25 @@
+@startuml
+start
+
+:SPARK
+"CREATE EXTERNAL TABLE";
+
+  if (Location Specified?) then (yes)
+    :Check User's WRITE
+    Authorization on Location;
+    if (Pass WRITE ACL?) then (yes)
+        :CREATE TABLE at **specified __LOCATION__**;
+        stop
+    else (no)
+        :**CREATE FAILS**, user doesn't
+         have access to location;
+        stop
+    endif
+  else (no)
+    :**CREATE FAILS**
+     LOCATION required when
+     creating 'EXTERNAL' table;
+    stop
+  endif
+
+@enduml

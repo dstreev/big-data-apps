@@ -1,0 +1,41 @@
+- hosts: sdlc
+
+  tasks:
+    - name: Build init sql file
+      file:
+        path: /tmp/{{ ansible_date_time.iso8601_basic_short }}.sql
+        state: touch
+        mode: u+rw,g-wx,o-rwx
+    - name: Add items to file
+      lineinfile:
+        path: /tmp/{{ ansible_date_time.iso8601_basic_short }}.sql
+        line: '{{ item.add_line }}'
+      with_items:
+        - { add_line: 'set hive.query.results.cache.enabled=false;' }
+        - { add_line: 'use {{ tpcds_db }};' }
+
+    - name: Run Queries with Various Endpoints
+      shell: hive --silent=true -i /tmp/{{ ansible_date_time.iso8601_basic_short }}.sql -f hive-testbench/sample-queries-tpcds/{{ item.file }} -c {{ item.env }}
+      register: tpcds_output
+      with_items:
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+        - { file: 'query15.sql', env: '{{ hs2_env }}' }
+
+    - debug: msg='{{ tpcds_output }}'
+    - debug: msg='{{ tpcds_output.results[0].delta }}'
+    - debug: msg='{{ tpcds_output.results[1].delta }}'
+    - debug: msg='{{ tpcds_output.results[2].delta }}'
+    - debug: msg='{{ tpcds_output.results[3].delta }}'
+    - debug: msg='{{ tpcds_output.results[4].delta }}'
+    - debug: msg='{{ tpcds_output.results[5].delta }}'
+    - debug: msg='{{ tpcds_output.results[6].delta }}'
+    - debug: msg='{{ tpcds_output.results[7].delta }}'
+    - debug: msg='{{ tpcds_output.results[8].delta }}'

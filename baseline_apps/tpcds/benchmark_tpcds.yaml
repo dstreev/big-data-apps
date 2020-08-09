@@ -1,6 +1,6 @@
 - hosts:          sdlc
-  become:         true
-  become_user:    '{{ user }}'
+#  become:         true
+#  become_user:    '{{ user }}'
 
   vars:
     tpcds_orc_db: 'tpcds_bin_partitioned_orc_{{ tpcds_size }}'

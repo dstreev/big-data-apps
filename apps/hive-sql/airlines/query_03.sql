@@ -9,10 +9,10 @@ SELECT
   , taxiout
   , taxiin
 FROM
-    airline_perf
+    airline_perf_ext
 WHERE
       origin = 'ATL'
   AND dest = 'LGA'
   AND operating_airline = 'DL'
   AND year_ = '2018'
-  AND month_ = '10'
+  AND month_ IN ('10','11','12')

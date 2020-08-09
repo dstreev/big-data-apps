@@ -1,0 +1,9 @@
+# get keytab
+
+# Pull Github Sources
+0 4 * * * cd /home/dstreev/covid;git pull
+# Fetch latest data
+0 5 * * * cd /home/dstreev;covid/load/github.sh
+# Put data in HDFS
+15 5 * * * cd /home/dstreev;hive-sre-cli -f covid/load/transfer.hdfs
+# Load Managed Tables

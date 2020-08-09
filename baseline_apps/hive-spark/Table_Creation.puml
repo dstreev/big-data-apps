@@ -1,0 +1,30 @@
+@startuml
+
+digraph table_creation {
+
+    subgraph cluster_hive {
+        label="Hive table CREATION"
+        hc [shape=box,label="CREATE"]
+        hce [shape=box,label="CREATE EXTERNAL"]
+    }
+    subgraph cluster_spark {
+        label="Spark table CREATION"
+        sc [shape=box,label="CREATE"]
+        sce [shape=box,label="CREATE EXTERNAL"]
+    }
+    subgraph cluster_metastore {
+        label="Hive Metastore Table Structure"
+        hmm [shape=box,label="MANAGED"]
+        hmcm [shape=box,label="EXTERNAL/PURGE"]
+        hme [shape=box,label="EXTERNAL"]
+    }
+
+    hc -> hmm;
+    hce -> hme;
+    sc -> hmcm;
+    sce -> hme;
+
+
+}
+
+@enduml

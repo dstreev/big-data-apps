@@ -16,7 +16,7 @@
         - ldap
         - hdp
     - name:                  Create User Home Directories in hdfs
-      shell:                 hdfs dfs -mkdir -p /user/{{ user }};hdfs dfs -chown -R {{ user }}:hadoop /user/{{ user }}
+      shell:                 hdfs dfs -mkdir -p /user/{{ user }};hdfs dfs -chown -R {{ user }}:{{ user }} /user/{{ user }}
       become:                true
       become_user:           hdfs
       tags:

@@ -1,5 +1,5 @@
 topic:
-  name: "CC_TRANS"
+  name: "CC_ACCOUNT"
   headers:
 type:
   key: "String"
@@ -9,7 +9,7 @@ configs:
   # Required to address a Kerberized Cluster
   security.protocol: "SASL_PLAINTEXT"
   acks: "0"
-  client.id: "cc-trans"
+  client.id: "cc-accts"
 #  transactional.id: "my-trans-id-1"
 #  batch.size: 3000000
 #  linger.ms: 3000

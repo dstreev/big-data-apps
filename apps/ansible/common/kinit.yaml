@@ -1,5 +1,4 @@
 - hosts: sdlc
-  tasks:
   vars_prompt:
     - name: "kerberized"
       prompt: "Is environment secure (Kerberized) (y/n)?"

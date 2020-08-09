@@ -9,7 +9,7 @@ SELECT
   , taxiout
   , taxiin
 FROM
-    airline_perf_ext
+    airline_perf
 WHERE
       origin = 'ATL'
   AND dest = 'LGA'

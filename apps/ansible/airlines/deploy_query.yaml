@@ -1,0 +1,16 @@
+- hosts: '{{ host }}'
+  vars:
+    remote_app_base: airline_perf
+
+  vars_prompt:
+    - name: "query_num"
+      prompt: "What query?"
+      default: "01"
+
+  tasks:
+    - name: Copy Query {{ query_num }}
+      copy:
+        src:   ../../hive-sql/airlines/query_{{ query_num }}.sql
+        dest:  '{{ ansible_env.HOME }}/{{ remote_app_base }}/sql/query_{{ query_num }}.sql'
+        force: yes
+        mode:  '0644'

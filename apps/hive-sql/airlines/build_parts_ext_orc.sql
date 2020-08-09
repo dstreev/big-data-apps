@@ -1,7 +1,7 @@
 USE ${DB};
 
 INSERT INTO TABLE
-    airline_perf ( SELECT
+    airline_perf_ext_orc ( SELECT
                        Year_
                      , Quarter
                      , Month_

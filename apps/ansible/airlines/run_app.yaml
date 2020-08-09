@@ -1,6 +1,6 @@
 - import_playbook:    ../common/kinit.yaml
 
-- hosts: sdlc
+- hosts: '{{ host }}'
   vars:
     db:      airline_perf
     basedir: /warehouse/tablespace/external/hive
@@ -50,7 +50,7 @@
 
     - name: Get Airport Data
       get_url:
-        url:            https://www.dropbox.com/s/raw/euypgrz6keecvmx/2018-2019_airline_perf.tgz?dl=0
+        url:            https://www.dropbox.com/s/3bbgyk4zsue5amz/2018-2019_airline_perf.tgz?dl=0
         dest:           "{{ ansible_env.HOME }}/{{ remote_app_base }}/2018-2019_airline_perf.tgz"
         force:          no
         http_agent:     "Mozilla"
@@ -68,11 +68,12 @@
 
     - name: Copy Sql Scripts
       copy:
-        src:   ../../hive-sql/airlines/create.sql
-        dest:  '{{ ansible_env.HOME }}/{{ remote_app_base }}/sql/create.sql'
+        src:   ../../hive-sql/airlines/{{ item }}
+        dest:  '{{ ansible_env.HOME }}/{{ remote_app_base }}/sql/{{ item }}'
         force: yes
         mode:  '0644'
       loop:
+        - init.sql
         - create.sql
         - compact.sql
         - create_alt.sql
@@ -146,3 +147,17 @@
       tags:
         - sqlbuild
         - compact
+
+    - name: Run Hive Analytic Queries
+      shell: '{{ analytic_hive }} --hivevar DB={{ db }} -i {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/init.sql -f {{ ansible_env.HOME }}/{{ remote_app_base }}/sql/{{ item }}'
+      register: hs2i_output
+      loop:
+        - query_01.sql
+        - query_02.sql
+      tags:
+        - hs2i
+
+    - debug:
+        var: hs2i_output
+      tags:
+        - hs2i

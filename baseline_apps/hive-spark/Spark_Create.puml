@@ -1,0 +1,21 @@
+@startuml
+start
+
+:SPARK
+"CREATE TABLE";
+
+  if (Location Specified?) then (yes)
+    :Check User's WRITE Authorization on Location;
+    if (Pass WRITE ACL?) then (yes)
+        :CREATE TABLE at specified 'LOCATION';
+        stop
+    else (no)
+        :Fail CREATE and\nreport reason in return;
+        stop
+    endif
+  else (no)
+    :CREATE TABLE using\n**DATABASE** __LOCATION__ as base dir;
+    stop
+  endif
+
+@enduml

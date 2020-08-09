@@ -1,0 +1,7 @@
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_COUNTRIES_AGGREGATED/countries-aggregated.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_KEY_COUNTRIES_PIVOTED/key-countries-pivoted.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_REFERENCE/reference.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_TIME_SERIES_COMBINED/time-series-19-covid-combined.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_US_CONFIRMED/us_confirmed.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_US_DEATHS/us_deaths.csv
+rm -r -f -skipTrash /warehouse/tablespace/external/hive/covid_github.db/IN_WORLDWIDE_AGGREGATED/worldwide-aggregated.csv

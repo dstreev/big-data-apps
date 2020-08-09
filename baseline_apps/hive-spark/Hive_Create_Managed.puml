@@ -1,0 +1,24 @@
+@startuml
+start
+
+:Create Managed Table;
+
+if (Location Specified?) then (yes)
+:Check User's WRITE Authorization on Location;
+    if (Pass WRITE ACL?) then (yes)
+        :CREATE TABLE at specified 'LOCATION';
+        stop
+    else (no)
+        :Fail CREATE and\nreport reason in return;
+        stop
+    endif
+else (no)
+    if (**MANAGEDLOCATION** specified in\n'CREATE DATABASE') then (yes)
+        :Use the DATABASE\n**MANAGEDLOCATION**\nas base dir;
+    else (no)
+        :CREATE TABLE using\n**hive.metastore.warehouse.dir**\nas base dir;
+    endif
+stop
+endif
+
+@enduml
