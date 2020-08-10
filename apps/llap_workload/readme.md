@@ -3,11 +3,11 @@
 Build a sample resource plan for LLAP using the internall LLAP Workload Management System.
 
 Note: Docs are improving all the time.  These references are for a specific version and may be out of date.  Always check for later documentation.
-[Workload Management Reference](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_workload_management.html)
-[Setting Up Workload Management](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_setting_up_and_using_a_resource_plan.html)
-[Workload Management YARN Queue Requirements](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_interactive_queue.html)
-[Inspecting Workload Management via Hive Tables](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_workload_management_entity_data_in_sys.html)
-[Workload Management Command Summary](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload-commands/content/hive_workload_management_command_summary.html)
+- [Workload Management Reference](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_workload_management.html)
+- [Setting Up Workload Management](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_setting_up_and_using_a_resource_plan.html)
+- [Workload Management YARN Queue Requirements](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_interactive_queue.html)
+- [Inspecting Workload Management via Hive Tables](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload/content/hive_workload_management_entity_data_in_sys.html)
+- [Workload Management Command Summary](https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.5/hive-workload-commands/content/hive_workload_management_command_summary.html)
 
 ## Guidance
 Use the [LLAP Configuration Calculator](https://github.com/dstreev/hive_llap_calculator) for guidance to establish a working LLAP configuration.
