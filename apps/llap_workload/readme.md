@@ -12,7 +12,7 @@ Note: Docs are improving all the time.  These references are for a specific vers
 ## Guidance
 Use the [LLAP Configuration Calculator](https://github.com/dstreev/hive_llap_calculator) for guidance to establish a working LLAP configuration.
 
-LLAP should be setup so it is NOT sharing YARN resources with other YARN tasks.
+LLAP should be setup so it is NOT sharing YARN resources with other YARN tasks on a NodeManager host.
 - Use YARN Node Labels and a special LLAP queue, mapped to the Node label, to secure specific hosts for this effort.
 - Do NOT co-locate LLAP Daemons with other HDP/CDP resources like: HBase Region Servers, Druid components, or other master services.
 - Disable yarn `pmem` checks on LLAP daemon containers to avoid aggresive YARN resource management from killing LLAP daemons.  This recommendation is identified in the latest version of the LLAP calculator, above.
