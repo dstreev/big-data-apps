@@ -1,0 +1,156 @@
+title: "Employee Profile"
+description: "Slow"
+output:
+  format: "CSV"
+order:
+  - id
+  - ip_address
+  - source
+  - gender
+  - birthday
+  - married_status
+  - ethinicity
+  - citizenship
+  - nationality
+  - job_title
+  - employee_type
+  - hire_date
+  - field_1
+  - field_2
+  - amount_1
+  - amount_2
+  - field_3
+keyFields:
+  - id
+fields:
+  # Will limit this 'key' to a range of 10,000,000 possible values.
+  -
+    type: "string"
+    name: "id"
+    hash: true
+    messageDigest: "SHA-1"
+    characters: "0123456789"
+    range:
+      min: 7
+      max: 7
+  -
+    type: "ipv4"
+    name: "ip_address"
+    range:
+      min: "22.0.0.0"
+      max: "210.0.0.0"
+  -
+    type: "string"
+    name: "source"
+    pool:
+      items:
+        - "INTERNET"
+        - "MAIL"
+        - "IN-PERSON"
+        - "PHONE"
+  -
+    type: "string"
+    name: "gender"
+    pool:
+      items:
+        - "MALE"
+        - "FEMALE"
+  -
+    type: "string"
+    name: "married_status"
+    pool:
+      items:
+        - "SINGLE"
+        - "MARRIED"
+        - "DIVORCED"
+  -
+    type: "string"
+    name: "ethinicity"
+    pool:
+      items:
+        - "Caucasian"
+        - "Lation"
+        - "Asian"
+        - "Black/African"
+        - "Declined to State"
+        - "Other"
+  -
+    type: "string"
+    name: "citizenship"
+    pool:
+      items:
+        - "US Citizenship"
+        - "Green Card Renewal"
+        - "Petition for Alien Relative"
+        - "Certificate of Citizenship"
+  -
+    type: "string"
+    name: "nationality"
+    pool:
+      items:
+        - "US"
+        - "UK"
+        - "EU"
+        - "Middle Eastern"
+        - "African"
+        - "Asian"
+        - "Australian"
+  -
+    type: "string"
+    name: "job_title"
+  -
+    type: "string"
+    name: "employee_type"
+    pool:
+      items:
+        - "Intern"
+        - "Fulltime"
+        - "Hourly"
+        - "Parttime"
+        - "Contract"
+        - "Temporary"
+  -
+    type: "date"
+    name: "hire_date"
+  -
+    type: "string"
+    name: "field_1"
+    range:
+      min: 3
+      max: 10
+    repeat: 5
+  -
+    type: "string"
+    name: "field_2"
+    range:
+      min: 20
+      max: 30
+  -
+    type: "float"
+    name: "amount_1"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "float"
+    name: "amount_2"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "date"
+    name: "update_ts"
+    increment: true
+    as: "LONG"
+    diff: 10
+    range:
+      min: "2018-06-01T07:00:00"
+  -
+    type: "string"
+    name: "field_3"
+    range:
+      min: 25
+      max: 25
+    repeat: 10
