@@ -49,6 +49,9 @@ fields:
         - "IN-PERSON"
         - "PHONE"
   -
+    type: "date"
+    name: "birthday"
+  -
     type: "string"
     name: "gender"
     pool:
