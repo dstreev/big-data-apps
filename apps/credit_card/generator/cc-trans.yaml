@@ -1,7 +1,7 @@
 title: "credit card transaction"
 description: "transaction"
 output:
-  format: "JSON"
+  format: "CSV"
 order:
   - cc_trans
   - ccn
