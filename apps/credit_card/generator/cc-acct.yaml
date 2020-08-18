@@ -10,6 +10,7 @@ order:
   - street
   - st
   - update_ts
+  - sort_uuid
 keyFields:
   - ccn
 fields:
@@ -110,9 +111,10 @@ fields:
         - WY
   - type: "date"
     name: "update_ts"
-    increment: true
+    current: true
     as: "LONG"
-    diff: 1000
-    range:
-      min: "2018-06-01T07:00:00"
+  - type: "uuid"
+    name: "sort_uuid"
+    desc: "Field used to create a unique and sort record when running in realtime when its
+            possible for the times to NOT be unique across potential repeats of an account"
 

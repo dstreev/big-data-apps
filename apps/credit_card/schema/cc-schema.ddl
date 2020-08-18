@@ -50,15 +50,17 @@ CREATE EXTERNAL TABLE
     STREET_NUM     INT,
     STREET         STRING,
     ST             STRING,
-    LAST_UPDATE_TS TIMESTAMP
+    LAST_UPDATE_TS INT,
+    UUID           STRING COMMENT "Used for addition sort and build unique record"
 )
     PARTITIONED BY
         (
-        PROCESSING_CYCLE TIMESTAMP
-        ) ROW FORMAT DELIMITED
-    FIELDS TERMINATED BY ','
+        PROCESSING_CYCLE STRING
+        )
+    ROW FORMAT SERDE
+        'org.apache.hadoop.hive.serde2.OpenCSVSerde'
     STORED AS TEXTFILE
-    TBLPROPERTIES ("external.purge.table" = "true", "discover.partitions" = "true","partition.retention.period" = "true","partition.retention.period" = "7d");
+    TBLPROPERTIES ("external.table.purge" = "true", "discover.partitions" = "true","partition.retention.period" = "true","partition.retention.period" = "7d");
 
 
 DROP TABLE
@@ -100,7 +102,14 @@ CREATE EXTERNAL TABLE
         (
         PROCESSING_CYCLE STRING
         )
-    ROW FORMAT DELIMITED
-        FIELDS TERMINATED BY ','
+    ROW FORMAT SERDE
+        'org.apache.hadoop.hive.serde2.OpenCSVSerde'
     STORED AS TEXTFILE;
 
+CREATE EXTERNAL TABLE IF NOT EXISTS STATE
+(
+    ABBREVIATION STRING,
+    STATE        STRING
+) ROW FORMAT DELIMITED
+    FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE;

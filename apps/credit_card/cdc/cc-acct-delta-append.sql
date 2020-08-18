@@ -1,0 +1,18 @@
+USE ${DATABASE};
+
+INSERT INTO TABLE CC_ACCT_DELTA
+SELECT
+    CCN,
+    FIRST_NAME,
+    LAST_NAME,
+    STREET_NUM,
+    STREET,
+    S.STATE                                               AS STATE,
+    from_unixtime(cast(LAST_UPDATE_TS AS INT))            AS LAST_UPDATE_TS,
+    from_unixtime(cast(LAST_UPDATE_TS AS INT), "yyyy_MM") AS YEAR_MONTH
+FROM
+    CC_ACCT_DELTA_INGEST D1,
+    STATE S
+WHERE
+      D1.ST = S.ABBREVIATION
+  AND D1.PROCESSING_CYCLE = "${PROCESSING_CYCLE}";

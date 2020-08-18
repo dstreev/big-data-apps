@@ -25,13 +25,13 @@ INTO
                     STREET_NUM,
                     STREET,
                     S.STATE AS                                                  STATE,
-                    LAST_UPDATE_TS,
-                    rank() OVER (PARTITION BY CCN ORDER BY LAST_UPDATE_TS DESC) RANK
+                    from_unixtime(cast(LAST_UPDATE_TS as INT)) as LAST_UPDATE_TS,
+                    rank() OVER (PARTITION BY CCN ORDER BY LAST_UPDATE_TS DESC, UUID ASC) RANK
                 FROM
-                    CC_ACCT_DELTA D1,
+                    CC_ACCT_DELTA_INGEST D1,
                     STATE S
                 WHERE
-                    D1.ST = S.ST PROCESSING_CYCLE = ${LAST_PROCESSING_CYCLE}
+                    D1.ST = S.ABBREVIATION AND D1.PROCESSING_CYCLE = "${PROCESSING_CYCLE}"
             ) SUB
         WHERE
             SUB.RANK = 1) AS DELTA

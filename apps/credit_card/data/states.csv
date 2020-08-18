@@ -1,13 +1,17 @@
 AL,Alabama
 AK,Alaska
+AS,American Samoa
 AZ,Arizona
 AR,Arkansas
 CA,California
 CO,Colorado
 CT,Connecticut
+DC,District of Columbia
 DE,Delaware
 FL,Florida
+FM,Micronesia
 GA,Georgia
+GU,Guam
 HI,Hawaii
 ID,Idaho
 IL,Illinois
@@ -24,6 +28,8 @@ MN,Minnesota
 MS,Mississippi
 MO,Missouri
 MT,Montana
+MH,Marshall Islands
+MP,Northern Marianas
 NE,Nebraska
 NV,Nevada
 NH,New Hampshire
@@ -36,6 +42,8 @@ OH,Ohio
 OK,Oklahoma
 OR,Oregon
 PA,Pennsylvania
+PW,Palau
+PR,Puerto Rico
 RI,Rhode Island
 SC,South Carolina
 SD,South Dakota
@@ -44,6 +52,7 @@ TX,Texas
 UT,Utah
 VT,Vermont
 VA,Virginia
+VI,Virgin Islands
 WA,Washington
 WV,West Virginia
 WI,Wisconsin
