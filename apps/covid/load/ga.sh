@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-PUB_DATE=`date +%Y_%M_%d`
+PUB_DATE=`date +%Y-%m-%d`
 
 mkdir -p $HOME/datasets/covid/ga
 
 hdfs dfs -mkdir -p /data/covid/archives/ga/COUNTY_CASES
-hdfs dfs -mkdir -p /data/covid/archives/ga/COUNTY_CASES
-hdfs dfs -mkdir -p /data/covid/archives/ga/COUNTY_CASES
+hdfs dfs -mkdir -p /data/covid/archives/ga/DEATHS
+hdfs dfs -mkdir -p /data/covid/archives/ga/DEMOGRAPHICS
 
 wget --backups=3 -P $HOME/datasets/covid/ga https://ga-covid19.ondemand.sas.com/docs/ga_covid_data.zip
 

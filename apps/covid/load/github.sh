@@ -2,7 +2,7 @@
 
 mkdir -p $HOME/datasets/github/covid-19
 
-PUB_DATE=`date +%Y_%M_%d`
+PUB_DATE=`date +%Y-%m-%d`
 
 hdfs dfs -mkdir -p /data/covid/archives/github/IN_COUNTRIES_AGGREGATED
 hdfs dfs -mkdir -p /data/covid/archives/github/IN_KEY_COUNTRIES_PIVOTED
