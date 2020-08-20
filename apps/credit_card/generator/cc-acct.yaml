@@ -109,11 +109,13 @@ fields:
         - WV
         - WI
         - WY
-  - type: "date"
+  -
+    type: "date"
     name: "update_ts"
     current: true
     as: "LONG"
-  - type: "uuid"
+  -
+    type: "uuid"
     name: "sort_uuid"
     desc: "Field used to create a unique and sort record when running in realtime when its
             possible for the times to NOT be unique across potential repeats of an account"
