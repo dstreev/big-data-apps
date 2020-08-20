@@ -17,8 +17,8 @@ hdfs dfs -put -f countycases.csv /warehouse/tablespace/external/hive/covid_ga.db
 hdfs dfs -put -f countycases.csv /data/covid/archives/ga/COUNTY_CASES/${PUB_DATE}_countycases.csv
 
 hdfs dfs -put -f deaths.csv /warehouse/tablespace/external/hive/covid_ga.db/DEATHS
-hdfs dfs -put -f deaths.csv /data/covid/archives/ga/COUNTY_CASES/${PUB_DATE}_deaths.csv
+hdfs dfs -put -f deaths.csv /data/covid/archives/ga/DEATHS/${PUB_DATE}_deaths.csv
 
 hdfs dfs -put -f demographics.csv /warehouse/tablespace/external/hive/covid_ga.db/DEMOGRAPHICS
-hdfs dfs -put -f demographics.csv /data/covid/archives/ga/COUNTY_CASES/${PUB_DATE}_demographics.csv
+hdfs dfs -put -f demographics.csv /data/covid/archives/ga/DEMOGRAPHICS/${PUB_DATE}_demographics.csv
 
