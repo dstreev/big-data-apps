@@ -1,0 +1,3 @@
+count -h /warehouse/tablespace/managed/hive/covid_ga.db/
+count -h /warehouse/tablespace/external/hive/covid_ga.db/
+count -h /data/covid/ga/
