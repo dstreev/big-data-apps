@@ -32,4 +32,4 @@ hdfs dfs -put -f deaths.csv $HDFS_BASE_DIR/landing_zone
 hdfs dfs -put -f demographics.csv $HDFS_BASE_DIR/DEMOGRAPHICS/${PROCESSING_CYCLE}_demographics.csv
 hdfs dfs -put -f demographics.csv $HDFS_BASE_DIR/landing_zone
 
-hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} -f ../load/ga_load.sql
+hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} -f ../dml/ga_load.sql
