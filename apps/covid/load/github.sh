@@ -17,7 +17,7 @@ DATABASE=${IN_DB:=covid_github}
 mkdir -p $HOME/datasets/covid/github
 
 # Fetch the latest datasets
-for source in countries-aggregated key-countries-pivoted reference time-series-19-covid-combined us_confirmed us_deaths worldwide-aggregated; done
+for source in countries-aggregated key-countries-pivoted reference time-series-19-covid-combined us_confirmed us_deaths worldwide-aggregated; do
   wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/${source}.csv
 done
 
