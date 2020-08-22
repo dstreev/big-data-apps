@@ -3,16 +3,17 @@
 cd `dirname $0`
 CURR_DIR=`pwd`
 
-INPUT=$1
-IN_RANGE=$2
-IN_DB=$3
+IN_CYCLE=$1
+IN_ARCH_PART=$2
+IN_RANGE=$3
+IN_DB=$4
 
-PROCESSING_CYCLE=${INPUT:=`date +%Y-%m-%d`}
+PROCESSING_CYCLE=${IN_CYCLE:=`date +%Y-%m-%d`}
+ARCHIVE_PARTITION=${IN_ARCH_PART:=`date +%Y-%m`}
 RANGE=${IN_RANGE:=1}
-
-ARCHIVE_PARTITION=`date +%Y-%m`
-HDFS_BASE_DIR=/data/covid/github
 DATABASE=${IN_DB:=covid_github}
+
+HDFS_BASE_DIR=/data/covid/github
 
 mkdir -p $HOME/datasets/covid/github
 hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/landing_zone
