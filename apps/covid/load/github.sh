@@ -15,6 +15,7 @@ HDFS_BASE_DIR=/data/covid/github
 DATABASE=${IN_DB:=covid_github}
 
 mkdir -p $HOME/datasets/covid/github
+hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/landing_zone
 
 # Fetch the latest datasets
 for source in countries-aggregated key-countries-pivoted reference time-series-19-covid-combined us_confirmed us_deaths worldwide-aggregated; do
@@ -36,7 +37,7 @@ do
     read -ra grparr <<< "${GRP}"
 
     hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/${grparr[1]}
-    hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/landing_zone
+    hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/landing_zone/
     hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
 
     hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} \
