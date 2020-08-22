@@ -32,6 +32,7 @@ wget --backups=3 -P $HOME/datasets/covid/ga https://ga-covid19.ondemand.sas.com/
 
 pushd $HOME/datasets/covid/ga
 unzip -o ga_covid_data.zip
+popd
 
 for (( LOAD=1; LOAD<=$RANGE; LOAD++ ))
 do
@@ -40,12 +41,12 @@ do
     IFS=','
     read -ra grparr <<< "${GRP}"
 
-    hdfs dfs -put -f ${grparr[0]}.csv $HDFS_BASE_DIR/landing_zone
-    hdfs dfs -put -f ${grparr[0]}.csv $HDFS_BASE_DIR/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
+    hdfs dfs -put -f $HOME/datasets/covid/ga/${grparr[0]}.csv $HDFS_BASE_DIR/landing_zone
+    hdfs dfs -put -f $HOME/datasets/covid/ga/${grparr[0]}.csv $HDFS_BASE_DIR/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
 
     hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE}_${LOAD} \
       --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} \
-      --hivevar TABLE_BASE=${grparr[1]} --hivevar TABLE_SOURCE=${grparr[0]} -f ../dml/github_load.sql
+      --hivevar TABLE_BASE=${grparr[1]} --hivevar TABLE_SOURCE=${grparr[0]} -f ../dml/ga_load.sql
 
   done
 done
