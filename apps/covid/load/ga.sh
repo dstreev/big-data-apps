@@ -35,7 +35,7 @@ unzip -o ga_covid_data.zip
 
 for (( LOAD=1; LOAD<=$RANGE; LOAD++ ))
 do
-  for GRP in "countycases,COUNTY_CASES" "deaths,DEATHS" "reference,REFERENCE" "demographics,DEMOGRAPHICS"
+  for GRP in "countycases,COUNTY_CASES" "deaths,DEATHS" "demographics,DEMOGRAPHICS"
   do
     IFS=','
     read -ra grparr <<< "${GRP}"
