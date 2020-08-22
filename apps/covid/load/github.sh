@@ -30,9 +30,7 @@ done
 #wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/worldwide-aggregated.csv
 
 for LOAD in {1..$RANGE}; do
-  for GRP in "countries-aggregated,COUNTRIES_AGGREGATED" "key-countries-pivoted,KEY_COUNTRIES_PIVOTED" \
-    "reference,REFERENCE" "time-series-19-covid-combined,TIME_SERIES_COMBINED" "us_confirmed,US_CONFIRMED" \
-    "us_deaths,US_DEATHS" "worldwide-aggregated,WORLDWIDE_AGGREGATED"; do
+  for GRP in "countries-aggregated,COUNTRIES_AGGREGATED" "key-countries-pivoted,KEY_COUNTRIES_PIVOTED" "reference,REFERENCE" "time-series-19-covid-combined,TIME_SERIES_COMBINED" "us_confirmed,US_CONFIRMED" "us_deaths,US_DEATHS" "worldwide-aggregated,WORLDWIDE_AGGREGATED"; do
     read -ra grparr << "${GRP}"
 
     hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/${grparr[1]}
