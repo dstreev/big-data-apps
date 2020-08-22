@@ -40,7 +40,7 @@ do
     hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/landing_zone/
     hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
 
-    hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} \
+    hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE}_${LOAD} \
       --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} \
       --hivevar TABLE_BASE=${grparr[1]} --hivevar TABLE_SOURCE=${grparr[0]} -f ../dml/github_load.sql
   done
