@@ -1,43 +1,62 @@
 #!/usr/bin/env bash
 
-mkdir -p $HOME/datasets/github/covid-19
+cd `dirname $0`
+CURR_DIR=`pwd`
 
-PUB_DATE=`date +%Y-%m-%d`
+INPUT=$1
+IN_RANGE=$2
+IN_DB=$3
 
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_COUNTRIES_AGGREGATED
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_KEY_COUNTRIES_PIVOTED
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_REFERENCE
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_TIME_SERIES_COMBINED
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_US_CONFIRMED
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_US_DEATHS
-hdfs dfs -mkdir -p /data/covid/archives/github/IN_WORLDWIDE_AGGREGATED
+PROCESSING_CYCLE=${INPUT:=`date +%Y-%m-%d`}
+RANGE=${IN_RANGE:=1}
+
+ARCHIVE_PARTITION=`date +%Y-%m`
+HDFS_BASE_DIR=/data/covid/github
+DATABASE=${IN_DB:=covid_github}
+
+mkdir -p $HOME/datasets/covid/github
 
 # Fetch the latest datasets
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/countries-aggregated.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/countries-aggregated.csv /warehouse/tablespace/external/hive/covid_github.db/IN_COUNTRIES_AGGREGATED
-hdfs dfs -put $HOME/datasets/github/covid-19/countries-aggregated.csv /data/covid/archives/github/IN_COUNTRIES_AGGREGATED/${PUB_DATE}_countries-aggregated.csv
+for source in countries-aggregated key-countries-pivoted reference time-series-19-covid-combined us_confirmed us_deaths worldwide-aggregated; done
+  wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/${source}.csv
+done
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/key-countries-pivoted.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/key-countries-pivoted.csv /warehouse/tablespace/external/hive/covid_github.db/IN_KEY_COUNTRIES_PIVOTED
-hdfs dfs -put $HOME/datasets/github/covid-19/key-countries-pivoted.csv /data/covid/archives/github/IN_KEY_COUNTRIES_PIVOTED/${PUB_DATE}_key-countries-pivoted.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/countries-aggregated.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/key-countries-pivoted.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/reference.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/time-series-19-covid-combined.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/us_confirmed.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/us_deaths.csv
+#wget --backups=3 -P $HOME/datasets/covid/github/ https://github.com/datasets/covid-19/raw/master/data/worldwide-aggregated.csv
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/reference.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/reference.csv /warehouse/tablespace/external/hive/covid_github.db/IN_REFERENCE
-hdfs dfs -put $HOME/datasets/github/covid-19/reference.csv /data/covid/archives/github/IN_REFERENCE/${PUB_DATE}_reference.csv
+for LOAD in {1..$RANGE}; do
+  for GRP in "countries-aggregated,COUNTRIES_AGGREGATED" "key-countries-pivoted,KEY_COUNTRIES_PIVOTED" \
+    "reference,REFERENCE" "time-series-19-covid-combined,TIME_SERIES_COMBINED" "us_confirmed,US_CONFIRMED" \
+    "us_deaths,US_DEATHS" "worldwide-aggregated,WORLDWIDE_AGGREGATED"; do
+    read -ra grparr << "${GRP}"
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/time-series-19-covid-combined.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/time-series-19-covid-combined.csv /warehouse/tablespace/external/hive/covid_github.db/IN_TIME_SERIES_COMBINED
-hdfs dfs -put $HOME/datasets/github/covid-19/time-series-19-covid-combined.csv /data/covid/archives/github/IN_TIME_SERIES_COMBINED/${PUB_DATE}_time-series-19-covid-combined.csv
+    hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/${grparr[1]}
+    hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/landing_zone
+    hdfs dfs -put $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/us_confirmed.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/us_confirmed.csv /warehouse/tablespace/external/hive/covid_github.db/IN_US_CONFIRMED
-hdfs dfs -put $HOME/datasets/github/covid-19/us_confirmed.csv /data/covid/archives/github/IN_US_CONFIRMED/${PUB_DATE}_us_confirmed.csv
+    hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} \
+      --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} \
+      --hivevar TABLE_BASE=${grparr[1]} --hivevar TABLE_SOURCE=${grparr[0]}} -f ../dml/github_load.sql
+  done
+done
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/us_deaths.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/us_deaths.csv /warehouse/tablespace/external/hive/covid_github.db/IN_US_DEATHS
-hdfs dfs -put $HOME/datasets/github/covid-19/us_deaths.csv /data/covid/archives/github/IN_US_DEATHS/${PUB_DATE}_us_deaths.csv
 
-wget --backups=3 -P $HOME/datasets/github/covid-19/ https://github.com/datasets/covid-19/raw/master/data/worldwide-aggregated.csv
-hdfs dfs -put -f $HOME/datasets/github/covid-19/worldwide-aggregated.csv /warehouse/tablespace/external/hive/covid_github.db/IN_WORLDWIDE_AGGREGATED
-hdfs dfs -put $HOME/datasets/github/covid-19/worldwide-aggregated.csv /data/covid/archives/github/IN_WORLDWIDE_AGGREGATED/${PUB_DATE}_worldwide-aggregated.csv
-
+#  hdfs dfs -put -f $HOME/datasets/covid/github/countries-aggregated.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/countries-aggregated.csv ${HDFS_BASE_DIR}/IN_COUNTRIES_AGGREGATED/${PROCESSING_CYCLE}_${LOAD}_countries-aggregated.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/key-countries-pivoted.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/key-countries-pivoted.csv ${HDFS_BASE_DIR}/IN_KEY_COUNTRIES_PIVOTED/${PROCESSING_CYCLE}_${LOAD}_key-countries-pivoted.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/reference.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/reference.csv ${HDFS_BASE_DIR}/IN_REFERENCE/${PROCESSING_CYCLE}_${LOAD}_reference.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/time-series-19-covid-combined.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/time-series-19-covid-combined.csv ${HDFS_BASE_DIR}/IN_TIME_SERIES_COMBINED/${PROCESSING_CYCLE}_${LOAD}_time-series-19-covid-combined.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/us_confirmed.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/us_confirmed.csv ${HDFS_BASE_DIR}/IN_US_CONFIRMED/${PROCESSING_CYCLE}_${LOAD}_us_confirmed.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/us_deaths.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/us_deaths.csv ${HDFS_BASE_DIR}/IN_US_DEATHS/${PROCESSING_CYCLE}_${LOAD}_us_deaths.csv
+#  hdfs dfs -put -f $HOME/datasets/covid/github/worldwide-aggregated.csv ${HDFS_BASE_DIR}/landing_zone
+#  hdfs dfs -put $HOME/datasets/covid/github/worldwide-aggregated.csv ${HDFS_BASE_DIR}/IN_WORLDWIDE_AGGREGATED/${PROCESSING_CYCLE}_${LOAD}_worldwide-aggregated.csv

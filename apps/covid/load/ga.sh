@@ -4,7 +4,7 @@ cd `dirname $0`
 CURR_DIR=`pwd`
 
 INPUT=$1
-PROCESSING_CYCLE=${INPUT:-`date +%Y-%m-%d`}
+PROCESSING_CYCLE=${INPUT:=`date +%Y-%m-%d`}
 ARCHIVE_PARTITION=`date +%Y-%m`
 HDFS_BASE_DIR=/data/covid/ga
 DATABASE=covid_ga
