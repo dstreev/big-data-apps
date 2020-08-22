@@ -37,7 +37,7 @@ do
 
     hdfs dfs -mkdir -p ${HDFS_BASE_DIR}/${grparr[1]}
     hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/landing_zone
-    hdfs dfs -put $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
+    hdfs dfs -put -f $HOME/datasets/covid/github/${grparr[0]}.csv ${HDFS_BASE_DIR}/${grparr[1]}/${PROCESSING_CYCLE}_${LOAD}_${grparr[0]}.csv
 
     hive --hivevar DATABASE=${DATABASE} --hivevar PROCESSING_CYCLE=${PROCESSING_CYCLE} \
       --hivevar HDFS_BASE_DIR=${HDFS_BASE_DIR} --hivevar ARCHIVE_PARTITION=${ARCHIVE_PARTITION} \
