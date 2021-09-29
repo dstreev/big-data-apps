@@ -1,0 +1,192 @@
+# See: https://github.com/dstreev/iot-data-utility
+title: default
+description: validation
+order:
+  - region
+  - country
+  - report_date
+  - output
+  - amount
+  - longs
+  - types
+  - count
+  - now
+  - seq
+  - field1
+  - field2
+  - field3
+  - field4
+  - field5
+  - field6
+  - field7
+  - field8
+fields:
+  -
+    type: "string"
+    name: "region"
+    pool:
+      items:
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - NA
+        - EU
+        - APAC
+        - APAC
+        - APAC
+        - MIDEAST
+        - SA
+        - RUSSIA
+  -
+    type: "string"
+    name: "country"
+    pool:
+      items:
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - US
+        - CAN
+        - MEX
+        - MISC
+        - CHINA
+        - AUS
+        - UK
+        - FR
+        - GER
+        - ITY
+        - GRC
+        - ICL
+        - CR
+        - JPN
+  -
+    type: "fixed"
+    name: "count"
+    value: 1
+  -
+    type: "float"
+    name: "amount"
+    format: "#.##"
+    range:
+      min: 1
+      max: 1000
+  -
+    type: "string"
+    name: "types"
+  -
+    type: "long"
+    name: "longs"
+    range:
+      min: 1
+      max: 29999999
+  -
+    type: "string"
+    name: "output"
+    range:
+      min: 2
+      max: 19
+    pool:
+      size: 100
+  -
+    type: "date"
+    name: "report_date"
+    range:
+      min: "2021-10-01"
+      max: "2021-10-15"
+  -
+    type: "date"
+    name: "now"
+    current: true
+  -
+    type: "sequence"
+    name: "seq"
+    start: 200
+  -
+    type: "string"
+    name: "field1"
+    range:
+      min: 5
+      max: 5
+    characters: "ABCDEFGHI"
+    pool:
+      size: 100
+  -
+    type: "string"
+    name: "field2"
+    pool:
+      items:
+        - hello
+        - world
+        - let's
+        - party
+  -
+    type: "string"
+    name: "field3"
+  -
+    type: "int"
+    name: "field4"
+  -
+    type: "ipv4"
+    name: "field5"
+    range:
+      min: "10.23.1.23"
+      max: "10.23.4.200"
+  -
+    type: "ipv4"
+    name: "field6"
+    range:
+      min: "10.23.1.23"
+      max: "10.23.4.200"
+    pool:
+      size: 10
+  -
+    type: "ipv4"
+    name: "field7"
+  -
+    type: "ipv4"
+    name: "field8"
+    pool:
+      items:
+        - "172.2.3.4"
+        - "172.2.3.5"
+        - "172.2.3.6"
+        - "172.2.3.7"
