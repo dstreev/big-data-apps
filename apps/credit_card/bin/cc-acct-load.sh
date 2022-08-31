@@ -12,7 +12,7 @@ PROC_CYCLE=`date +%y%m%d_%I%M`
 ACCT_FILE=acct-${PROC_CYCLE}
 
 echo "Generating Account Data ($1 records)"
-datagencli -cfg ../generator/cc-acct.yaml -o $HOME/datasets/credit_card/acct/${ACCT_FILE} -count $COUNT
+datagencli -cfg ../generator/cc-acct.yaml -o $HOME/datasets/credit_card/acct/${ACCT_FILE} --count $COUNT
 
 echo "Posting Account Data to HDFS in ${PROC_CYCLE} directory"
 hdfs dfs -mkdir -p /warehouse/tablespace/external/hive/${DATABASE}.db/cc_acct_delta/YEAR_MONTH=${PROC_CYCLE}
