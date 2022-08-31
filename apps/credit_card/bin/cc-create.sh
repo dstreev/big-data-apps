@@ -2,5 +2,8 @@
 
 cd `dirname $0`
 
-hive --hivevar DATABASE=$1 -f ../schema/cc-schema.ddl
+DATABASE=$1
+echo "using database: ${DATABASE}"
+
+hive --hivevar DATABASE=${DATABASE} -f ../schema/cc-schema.ddl
 
