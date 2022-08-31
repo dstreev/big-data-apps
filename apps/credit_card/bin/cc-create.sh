@@ -2,5 +2,5 @@
 
 cd `dirname $0`
 
-hive --hivevar database=$1 -f ../schema/cc-schema.ddl
+hive --hivevar DATABASE=$1 -f ../schema/cc-schema.ddl
 

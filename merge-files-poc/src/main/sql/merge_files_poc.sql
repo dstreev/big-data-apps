@@ -69,6 +69,32 @@ CREATE EXTERNAL TABLE merge_files_part
         'external.table.purge' = 'true'
         );
 
+--ACID
+DROP TABLE IF EXISTS merge_files_part_acid;
+CREATE TABLE merge_files_part_acid
+(
+    report_timestamp TIMESTAMP,
+    output STRING,
+    amount DOUBLE,
+    longs  BIGINT,
+    types  STRING,
+    count  STRING,
+    now    DATE,
+    seq    STRING,
+    field1 STRING,
+    field2 STRING,
+    field3 STRING,
+    field4 BIGINT,
+    field5 STRING,
+    field6 STRING,
+    field7 STRING,
+    field8 STRING
+)
+    PARTITIONED BY (
+        region STRING, country STRING, report_date STRING
+        )
+    STORED AS ORC;
+
 -- with index and bloom
 DROP TABLE IF EXISTS merge_files_part;
 CREATE EXTERNAL TABLE merge_files_part
@@ -998,7 +1024,8 @@ set hive.merge.tezfiles=true;
 set hive.optimize.sort.dynamic.partition.threshold=-1;
 
 -- Set this to an estimated number of partitions you'll write to
-set mapred.reduce.tasks=1500;
+--set mapred.reduce.tasks=1500;
+set hive.stats.autogather=false;
 
 -- For the merge, but lets keep the size to something that can
 --  be written to quickly
@@ -1045,6 +1072,38 @@ DISTRIBUTE BY
     , reporting_date
     , hour(report_date)
     ;
+
+INSERT INTO TABLE
+    merge_files_part_acid PARTITION (region, country, report_date)
+SELECT
+    report_date,
+    output,
+    amount,
+    longs,
+    types,
+    count,
+    now,
+    seq,
+    field1,
+    field2,
+    field3,
+    field4,
+    field5,
+    field6,
+    field7,
+    field8,
+    region,
+    country,
+    to_date(report_date) as reporting_date
+FROM
+    merge_files_source
+    DISTRIBUTE BY
+    region
+  , country
+  , reporting_date
+  , hour(report_date)
+;
+
 
 select explode(histogram_numeric(hash(region,country,report_date)%1009,1009)) as h from merge_files_source;
 
