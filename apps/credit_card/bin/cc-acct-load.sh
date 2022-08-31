@@ -17,6 +17,7 @@ datagencli -o $HOME/datasets/credit_card/acct/${ACCT_FILE} -c $COUNT -cfg ../gen
 echo "Posting Account Data to HDFS in ${PROC_CYCLE} directory"
 hdfs dfs -mkdir -p /warehouse/tablespace/external/hive/${DATABASE}.db/cc_acct_delta/YEAR_MONTH=${PROC_CYCLE}
 
+hdfs dfs -put $HOME/datasets/credit_card/acct/${ACCT_FILE} /warehouse/tablespace/external/hive/${DATABASE}.db/cc_acct_delta/YEAR_MONTH=${PROC_CYCLE}
 # Discover the new partition.
 ## Be aware of the limits/performance characteristics of A LOT of partitions here.
 ## When a LARGE number of partitions will exists, it will be better to ADD the partition manually with SQL.
