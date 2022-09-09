@@ -1,5 +1,5 @@
-set hive.query.name="CC_ACCT_DELTA Append (ACID) w/o Distribute";
--- set hive.session.id="CC_ACCT_DELTA Append (ACID) w/o Distribute";
+set hive.query.name="CC_ACCT_DELTA Append (ACID) with Distribute";
+-- set hive.session.id="CC_ACCT_DELTA Append (ACID) with Distribute";
 
 USE ${DATABASE};
 
@@ -23,4 +23,7 @@ SELECT
 FROM
     ${DATABASE}_INGEST.CC_ACCT_DELTA_INGEST D1
 WHERE
-      D1.PROCESSING_CYCLE = "${PROCESSING_CYCLE}";
+      D1.PROCESSING_CYCLE = "${PROCESSING_CYCLE}"
+DISTRIBUTE BY
+--     from_unixtime(cast(LAST_UPDATE_TS AS INT), "yyyy_MM");
+    YEAR_MONTH;

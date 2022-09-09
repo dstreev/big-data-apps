@@ -1,5 +1,15 @@
+set hive.query.name="CC_ACCT ACID Update";
+-- set hive.session.id="CC_ACCT ACID Update";
+
 USE ${DATABASE};
 
+-- Account Datasets: 2022-08-01 to 2022-08-10
+-- Small Files on 2022-08-05
+
+set tez.grouping.min-size = ${TEZ_GROUP_MIN_SIZE};
+set tez.grouping.max-size = ${TEZ_GROUP_MAX_SIZE};
+
+-- EXPLAIN FORMATTED
 MERGE
 INTO
     CC_ACCT AS ACCT
@@ -28,8 +38,8 @@ INTO
                     from_unixtime(cast(LAST_UPDATE_TS as INT)) as LAST_UPDATE_TS,
                     rank() OVER (PARTITION BY CCN ORDER BY LAST_UPDATE_TS DESC, UUID ASC) RANK
                 FROM
-                    CC_ACCT_DELTA_INGEST D1,
-                    STATE S
+                    ${DATABASE}_INGEST.CC_ACCT_DELTA_INGEST D1,
+                    ${DATABASE}_INGEST.STATE S
                 WHERE
                     D1.ST = S.ABBREVIATION AND D1.PROCESSING_CYCLE = "${PROCESSING_CYCLE}"
             ) SUB

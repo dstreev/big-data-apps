@@ -1,0 +1,67 @@
+- hosts: sdlc
+  vars:
+    database: credit_card_01
+    app_dir: apps/credit_card
+    ext_warehouse_dir: /warehouse/tablespace/external/hive
+    warehouse_dir: /warehouse/tablespace/managed/hive
+    acct_count: 5000
+    acct_gen_mappers: 2
+    generator_dfs_dir: /user/{{ ansible_env['USER'] }}/cfgs
+  tasks:
+    - name: Cleanup existing ingest data
+      shell: hdfs dfs -rm -r -f {{ ext_warehouse_dir }}/{{ database }}_ingest.db/cc_acct_delta_ingest
+      tags:
+        - account
+        - clean
+
+    - name: Run the data generator, building {{ item.count }} account records for {{ item.processing_cycle }}
+      shell: datagenmr -s {{ generator_dfs_dir }}/cc-acct.yaml -d {{ ext_warehouse_dir }}/{{ database }}_ingest.db/cc_acct_delta_ingest/processing_cycle={{ item.processing_cycle }} -c {{ item.count }} -m {{ item.mappers }}
+      loop:
+        - { processing_cycle: '2022-08-01', count: '1000000', mappers: '2' }
+        - { processing_cycle: '2022-08-02', count: '5000000', mappers: '2' }
+        - { processing_cycle: '2022-08-03', count: '1000000', mappers: '4' }
+        - { processing_cycle: '2022-08-04', count: '10000000', mappers: '4' }
+        - { processing_cycle: '2022-08-05', count: '1000000', mappers: '100' } # small files example
+        - { processing_cycle: '2022-08-06', count: '15000000', mappers: '20' }
+        - { processing_cycle: '2022-08-07', count: '5000000', mappers: '10' }
+        - { processing_cycle: '2022-08-08', count: '2500000', mappers: '5' }
+        - { processing_cycle: '2022-08-09', count: '5000000', mappers: '2' }
+        - { processing_cycle: '2022-08-10', count: '1000000', mappers: '4' }
+      tags:
+        - account
+        - generate
+
+    - name: Discover directories for account delta ingest
+      shell: hive -e 'MSCK REPAIR TABLE {{ database }}.cc_acct_delta_ingest SYNC PARTITIONS'
+      tags:
+        - account
+        - discover
+
+    - name: Cleanup existing transaction ingest data
+      shell: hdfs dfs -rm -r -f {{ ext_warehouse_dir }}/{{ database }}_ingest.db/cc_trans_ingest
+      tags:
+        - transactions
+        - clean
+
+    - name: Run the data generator, building {{ item.count }} transaction records for {{ item.processing_cycle }}
+      shell: datagenmr -s {{ generator_dfs_dir }}/cc-trans.yaml -d {{ ext_warehouse_dir }}/{{ database }}_ingest.db/cc_trans_ingest/processing_cycle={{ item.processing_cycle }} -c {{ item.count }} -m {{ item.mappers }}
+      loop:
+        - { processing_cycle: '2022-08-02', count: '50000000', mappers: '10' }
+        - { processing_cycle: '2022-08-03', count: '10000000', mappers: '10' }
+        - { processing_cycle: '2022-08-04', count: '70000000', mappers: '10' }
+        - { processing_cycle: '2022-08-05', count: '100000000', mappers: '10' }
+        - { processing_cycle: '2022-08-06', count: '10000000', mappers: '10' }
+        - { processing_cycle: '2022-08-07', count: '50000000', mappers: '30' }
+        - { processing_cycle: '2022-08-08', count: '25000000', mappers: '20' }
+        - { processing_cycle: '2022-08-09', count: '250000000', mappers: '500' } # small files example
+        - { processing_cycle: '2022-08-10', count: '10000000', mappers: '10' }
+        - { processing_cycle: '2022-08-11', count: '40000000', mappers: '2' }
+      tags:
+        - transactions
+        - generate
+
+    - name: Discover directories for account delta ingest
+      shell: hive -e 'MSCK REPAIR TABLE {{ database }}.cc_trans_ingest SYNC PARTITIONS'
+      tags:
+        - transactions
+        - discover

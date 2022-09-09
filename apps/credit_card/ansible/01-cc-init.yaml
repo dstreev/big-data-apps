@@ -1,0 +1,91 @@
+- hosts: sdlc
+  vars:
+    database: credit_card_01
+    app_dir: apps/credit_card
+    ext_warehouse_dir: /warehouse/tablespace/external/hive
+    warehouse_dir: /warehouse/tablespace/managed/hive
+    count: 5000
+    generator_dfs_dir: /user/{{ ansible_env['USER'] }}/cfgs
+
+  tasks:
+    - name: Check base dir exists
+      file:
+        path: "{{ ansible_env['HOME'] }}/{{ app_dir }}/generator"
+        state: directory
+        mode: 0755
+
+    - name: Check base dir exists
+      file:
+        path: "{{ ansible_env['HOME'] }}/{{ app_dir }}/schema"
+        state: directory
+        mode: 0755
+
+    - name: Check base dir exists
+      file:
+        path: "{{ ansible_env['HOME'] }}/{{ app_dir }}/data"
+        state: directory
+        mode: 0755
+
+    #    - name: Check dataset dir exists
+#      file:
+#        path: "{{ ansible_env['HOME'] }}/datasets/credit_card/acct"
+#        state: directory
+#        mode: 0755
+
+    - name: Copy over the generator schema for Acct.
+      copy:
+        src: ../generator/cc-acct.yaml
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/generator/cc-acct.yaml"
+
+    - name: Copy over the generator schema for Transactions.
+      copy:
+        src: ../generator/cc-trans.yaml
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/generator/cc-trans.yaml"
+
+    - name: Copy over the managed schema script.
+      copy:
+        src: ../schema/cc-mngd-schema.ddl
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-mngd-schema.ddl"
+      tags:
+        - managed
+    - name: Copy over the ingest schema script.
+      copy:
+        src: ../schema/cc-ingest-schema.ddl
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-ingest-schema.ddl"
+      tags:
+        - ingest
+    - name: Copy over the ext schema script.
+      copy:
+        src: ../schema/cc-ext-schema.ddl
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-ext-schema.ddl"
+      tags:
+        - managed
+
+    - name: Copy over the state data script.
+      copy:
+        src: ../data/states.csv
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/data/states.csv"
+
+    - name: Copy acct schema generator scripts to dfs
+      shell: hdfs dfs -copyFromLocal -f {{ ansible_env['HOME'] }}/{{ app_dir }}/generator/cc-acct.yaml {{ generator_dfs_dir }}
+
+    - name: Copy transaction schema generator scripts to dfs
+      shell: hdfs dfs -copyFromLocal -f {{ ansible_env['HOME'] }}/{{ app_dir }}/generator/cc-trans.yaml {{ generator_dfs_dir }}
+
+    - name: Run managed schema ddl
+      shell: hive --hivevar DATABASE={{ database }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-mngd-schema.ddl
+      tags:
+        - managed
+
+    - name: Run ingest schema ddl
+      shell: hive --hivevar DATABASE={{ database }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-ingest-schema.ddl
+      tags:
+        - ingest
+
+    - name: Run ext schema ddl
+      shell: hive --hivevar DATABASE={{ database }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/schema/cc-ext-schema.ddl
+      tags:
+        - external
+
+    - name: Copy state data to dfs
+      shell: hdfs dfs -copyFromLocal -f {{ ansible_env['HOME'] }}/{{ app_dir }}/data/states.csv {{ ext_warehouse_dir }}/{{ database }}_ingest.db/state

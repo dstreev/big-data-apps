@@ -1,7 +1,5 @@
 title: "credit card account"
 description: "account"
-output:
-  format: "CSV"
 order:
   - ccn
   - first_name

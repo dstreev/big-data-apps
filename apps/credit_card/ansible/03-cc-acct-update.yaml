@@ -1,0 +1,94 @@
+- hosts: sdlc
+  vars:
+    database: credit_card_01
+    app_dir: apps/credit_card
+
+  tasks:
+    - name: Check base dir exists
+      file:
+        path: "{{ ansible_env['HOME'] }}/{{ app_dir }}/cdc"
+        state: directory
+        mode: 0755
+
+    - name: Copy over the delta append for Acct.
+      copy:
+        src: ../cdc/cc-acct-delta-append.sql
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-delta-append.sql"
+      tags:
+        - account
+        - delta
+        - load
+
+    - name: Copy over the acct (acid) update.
+      copy:
+        src: ../cdc/cc-acct-update.sql
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-update.sql"
+      tags:
+        - account
+        - update
+        - load
+
+    - name: Copy over the acct (external) update.
+      copy:
+        src: ../cdc/cc-acct-ext-update.sql
+        dest: "{{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-ext-update.sql"
+      tags:
+        - account
+        - update
+        - load
+        - external
+
+    - name: Run account delta append load
+      shell: hive --hivevar DATABASE={{ database }} --hivevar PROCESSING_CYCLE={{ item.processing_cycle }} --hivevar TEZ_GROUP_MIN_SIZE={{ item.tez_group_min_size }} --hivevar TEZ_GROUP_MAX_SIZE={{ item.tez_group_max_size }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-delta-append.sql
+      loop:
+        - { processing_cycle: '2022-08-01', count: '10000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-02', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-03', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-04', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-05', count: '100000', mappers: '100', tez_group_min_size: '52428', tez_group_max_size: '1073741' } # small files example
+        - { processing_cycle: '2022-08-06', count: '1000000', mappers: '20', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-07', count: '500000', mappers: '10', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-08', count: '250000', mappers: '5', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-09', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-10', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+      tags:
+        - account
+        - delta
+        - load
+
+    - name: Run account (acid) update
+      shell: hive --hivevar DATABASE={{ database }} --hivevar PROCESSING_CYCLE={{ item.processing_cycle }} --hivevar TEZ_GROUP_MIN_SIZE={{ item.tez_group_min_size }} --hivevar TEZ_GROUP_MAX_SIZE={{ item.tez_group_max_size }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-update.sql
+      loop:
+        - { processing_cycle: '2022-08-01', count: '10000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-02', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-03', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-04', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-05', count: '100000', mappers: '100', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' } # small files example
+        - { processing_cycle: '2022-08-06', count: '1000000', mappers: '20', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-07', count: '500000', mappers: '10', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-08', count: '250000', mappers: '5', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-09', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-10', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+      tags:
+        - account
+        - update
+        - load
+
+    - name: Run account (external) update
+      shell: hive --hivevar DATABASE={{ database }} --hivevar PROCESSING_CYCLE={{ item.processing_cycle }} --hivevar TEZ_GROUP_MIN_SIZE={{ item.tez_group_min_size }} --hivevar TEZ_GROUP_MAX_SIZE={{ item.tez_group_max_size }} -f {{ ansible_env['HOME'] }}/{{ app_dir }}/cdc/cc-acct-ext-update.sql
+      loop:
+        - { processing_cycle: '2022-08-01', count: '10000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-02', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-03', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-04', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-05', count: '100000', mappers: '100', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' } # small files example
+        - { processing_cycle: '2022-08-06', count: '1000000', mappers: '20', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-07', count: '500000', mappers: '10', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-08', count: '250000', mappers: '5', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-09', count: '50000', mappers: '2', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+        - { processing_cycle: '2022-08-10', count: '100000', mappers: '4', tez_group_min_size: '52428800', tez_group_max_size: '1073741824' }
+      tags:
+        - account
+        - update
+        - load
+        - external

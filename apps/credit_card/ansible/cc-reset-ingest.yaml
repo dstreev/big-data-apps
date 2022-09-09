@@ -1,0 +1,7 @@
+- hosts: sdlc
+  vars:
+    database: credit_card_01
+
+  tasks:
+    - name: Run ingest reset script
+      shell: hive --hivevar DATABASE={{ database }} -e 'DROP DATABASE IF EXISTS {{ database }}_ingest CASCADE'

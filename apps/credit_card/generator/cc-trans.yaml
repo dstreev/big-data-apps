@@ -1,7 +1,5 @@
 title: "credit card transaction"
 description: "transaction"
-output:
-  format: "CSV"
 order:
   - cc_trans
   - ccn
@@ -28,12 +26,12 @@ fields:
   -
     type: "date"
     name: "trans_ts"
-    increment: true
-    as: "LONG"
-    diff: 1000
+#    increment: true
+#    as: "LONG"
+#    diff: 1000
     range:
-      min: "2018-06-01T07:00:00"
-
+      min: "2020-06-01T00:00:00"
+      max: "2020-10-01T00:00:00"
   -
     type: "int"
     name: "mcc"
